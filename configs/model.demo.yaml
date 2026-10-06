@@ -1,0 +1,6 @@
+status: DEMO_ONLY
+adapter: deterministic_demo
+model_path: null
+random_seed: 42
+notes:
+  - No scientific claim may use this adapter.

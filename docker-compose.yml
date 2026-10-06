@@ -1,0 +1,78 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}
+      MSSQL_PID: "Developer"
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}' -Q 'SELECT 1'"]
+      interval: 8s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  migrate:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    env_file: .env
+    environment:
+      XS_DATABASE_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}@mssql:1433/xsentinel?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes
+      XS_EXPECTED_DB_REVISION: 0002_v3_jev_ai_audit
+    command: ["alembic", "-c", "database/alembic.ini", "upgrade", "head"]
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    env_file: .env
+    environment:
+      XS_BACKEND_HOST: 0.0.0.0
+      XS_BACKEND_PORT: 8000
+      XS_DATABASE_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}@mssql:1433/xsentinel?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes
+      XS_DATABASE_REQUIRED: "true"
+      XS_EXPECTED_DB_REVISION: 0002_v3_jev_ai_audit
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./artifacts:/app/artifacts
+      - ./models:/app/models:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/frontend.Dockerfile
+    env_file: .env
+    environment:
+      XS_API_BASE_URL: http://backend:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mssql_data:
+    name: x_sentinel_mssql_data_v3

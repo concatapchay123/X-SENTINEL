@@ -1,0 +1,28 @@
+version: v3
+enabled: false
+advisory_only: true
+provider: lm_studio_openai_compatible
+base_url: http://localhost:1234/v1
+model_id: jev-local-TBD
+request:
+  timeout_seconds: 60
+  temperature: 0.1
+  max_context_chars: 30000
+  max_output_tokens: 1200
+context:
+  allow_raw_features: false
+  allow_raw_pe: false
+  shap_top_k: 20
+  include_detector_diagnostics: true
+  include_project_docs: false
+retention:
+  store_response_text: true
+  store_prompt_text: false
+  store_context_summary: true
+security:
+  local_only: true
+  allowed_hosts:
+    - localhost
+    - 127.0.0.1
+    - host.docker.internal
+prompt_version: jev-v3.0.0

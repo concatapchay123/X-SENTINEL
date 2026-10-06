@@ -1,0 +1,39 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: "CiStrongPassword2025!"
+          MSSQL_PID: "Developer"
+        ports:
+          - 1433:1433
+    env:
+      XS_DATABASE_URL: mssql+pyodbc://sa:CiStrongPassword2025!@localhost:1433/xsentinel?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes
+      XS_DATABASE_REQUIRED: "true"
+      XS_EXPECTED_DB_REVISION: 0002_v3_jev_ai_audit
+      XS_DEMO_MODE: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install system ODBC dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unixodbc-dev
+      - run: pip install -e '.[dev]'
+      - run: python scripts/baseline_audit.py
+      - run: alembic -c database/alembic.ini upgrade head
+      - run: python scripts/check_schema_revision.py
+      - run: alembic -c database/alembic.ini check
+      - run: ruff check backend frontend tests scripts database
+      - run: mypy backend/src
+      - run: pytest -q

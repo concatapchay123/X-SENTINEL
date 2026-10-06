@@ -1,0 +1,1572 @@
+# MASTER PROMPT — COMPLETE PROJECT BASELINE FOR VIBE CODING
+
+Tôi muốn bạn đóng vai trò đồng thời là:
+
+- Principal Software Architect
+- Senior Backend Engineer
+- Senior Frontend Engineer
+- Database Architect
+- AI / RAG / Vector Database Engineer
+- DevOps Engineer
+- Security Engineer
+- QA / Test Architect
+- Technical Product Manager
+- Technical Writer
+
+Nhiệm vụ của bạn KHÔNG phải lập một kế hoạch sơ sài.
+
+Nhiệm vụ của bạn là xây dựng cho tôi một **COMPLETE PROJECT BASELINE** đủ chi tiết để sau khi baseline hoàn thành, một AI coding agent hoặc nhiều AI agent khác nhau có thể dựa hoàn toàn vào baseline này để tiếp tục vibe-code dự án mà:
+
+- không làm sai kiến trúc;
+- không tự ý thay đổi yêu cầu;
+- không tạo code trùng lặp;
+- không tạo API tùy tiện;
+- không làm sai database;
+- không phá vỡ frontend/backend contract;
+- không mất kiểm soát scope;
+- không bỏ sót security;
+- không bỏ sót testing;
+- không bỏ sót documentation;
+- không tạo ra các module không liên kết;
+- có thể kiểm tra được mức độ hoàn thành của toàn dự án.
+
+Baseline phải đóng vai trò như:
+
+> PROJECT CONSTITUTION + TECHNICAL SPECIFICATION + ARCHITECTURE BLUEPRINT + IMPLEMENTATION ROADMAP + TEST PLAN + DELIVERY CONTRACT.
+
+---
+
+# I. NGUYÊN TẮC BẮT BUỘC
+
+Trước khi tạo baseline, hãy đọc và phân tích toàn bộ:
+
+- yêu cầu dự án;
+- tài liệu kiến trúc;
+- tài liệu nghiệp vụ;
+- source code hiện có nếu có;
+- frontend hiện có;
+- backend hiện có;
+- database hiện có;
+- API hiện có;
+- file cấu hình;
+- README;
+- Docker;
+- CI/CD;
+- tài liệu test;
+- tài liệu deployment;
+- các tài liệu liên quan khác.
+
+Nếu dự án chưa có source code thì xây dựng baseline từ đầu.
+
+Nếu dự án đã có source code thì:
+
+1. Không tự ý phá bỏ kiến trúc hiện tại.
+2. Không tự ý overwrite code.
+3. Không tự ý đổi framework.
+4. Không tự ý đổi database.
+5. Không tự ý thay đổi API contract.
+6. Phải phân biệt rõ:
+
+- EXISTING
+- MISSING
+- PARTIAL
+- NEED REFACTOR
+- PROPOSED
+- TBD
+
+Không được giả định một yêu cầu chưa có căn cứ.
+
+Thông tin chưa xác định phải ghi:
+
+`[TBD]`
+
+Thông tin do AI đề xuất phải ghi:
+
+`[PROPOSED]`
+
+Thông tin đang giả định phải ghi:
+
+`[ASSUMPTION]`
+
+---
+
+# II. MỤC TIÊU CUỐI CÙNG
+
+Hãy tạo một baseline sao cho sau khi hoàn thành, tôi có thể đưa baseline cho một AI coding agent và nói:
+
+> "Implement theo baseline."
+
+Agent phải có đủ thông tin để biết:
+
+- xây cái gì;
+- tại sao phải xây;
+- xây ở đâu;
+- file nào chịu trách nhiệm;
+- module nào phụ thuộc module nào;
+- frontend gọi API nào;
+- backend xử lý ở service nào;
+- database lưu ở đâu;
+- vector database lưu gì;
+- schema như thế nào;
+- authentication hoạt động thế nào;
+- authorization hoạt động thế nào;
+- test như thế nào;
+- điều kiện nào được coi là hoàn thành;
+- cách deploy;
+- cách rollback;
+- cách kiểm chứng sản phẩm.
+
+---
+
+# III. SOURCE OF TRUTH
+
+Baseline phải thiết lập thứ tự ưu tiên Source of Truth.
+
+Ví dụ:
+
+1. `PROJECT_BASELINE.md`
+2. `REQUIREMENTS.md`
+3. `ARCHITECTURE.md`
+4. `DATABASE_SPEC.md`
+5. `API_CONTRACT.md`
+6. `SECURITY_SPEC.md`
+7. `TEST_STRATEGY.md`
+8. Source code thực tế
+9. README
+
+Nếu có xung đột phải ghi rõ.
+
+Không được để nhiều file mô tả cùng một rule nhưng khác nhau.
+
+---
+
+# IV. THIẾT KẾ 15 CHUỖI HÀNH ĐỘNG
+
+Toàn bộ dự án phải được chia thành đúng **15 ACTION CHAINS**.
+
+Mỗi Action Chain bắt buộc phải có:
+
+- ID
+- Tên
+- Objective
+- Input
+- Preconditions
+- Tasks
+- Subtasks
+- Backend impact
+- Frontend impact
+- Database impact
+- Vector Database impact
+- Security impact
+- Files involved
+- Dependencies
+- Expected Output
+- Validation
+- Test cases
+- Acceptance Criteria
+- Definition of Done
+- Risks
+- Rollback strategy
+- Exit Gate
+
+Thiết kế 15 Action Chains theo cấu trúc sau.
+
+## ACTION CHAIN 01 — PROJECT DISCOVERY
+
+Phân tích:
+
+- mục tiêu;
+- người dùng;
+- stakeholder;
+- business flow;
+- use case;
+- functional requirements;
+- non-functional requirements;
+- constraint;
+- assumption;
+- dependency.
+
+Output:
+
+`PROJECT_CONTEXT.md`
+
+---
+
+## ACTION CHAIN 02 — REQUIREMENT NORMALIZATION
+
+Chuẩn hóa:
+
+- Epic
+- Feature
+- User Story
+- Business Rule
+- Acceptance Criteria
+- Edge Case
+- Error Case
+- Permission Rule
+
+Output:
+
+`REQUIREMENTS.md`
+
+---
+
+## ACTION CHAIN 03 — SCOPE & MVP DEFINITION
+
+Phân loại:
+
+- MVP
+- Phase 2
+- Future
+- Optional
+- Out of Scope
+
+Tạo scope control để AI không tự phát triển feature ngoài yêu cầu.
+
+Output:
+
+`SCOPE.md`
+
+---
+
+## ACTION CHAIN 04 — DOMAIN MODELING
+
+Xác định:
+
+- Domain
+- Entity
+- Aggregate
+- Value Object
+- Relationship
+- Business Service
+- Domain Event
+- State transition
+
+Output:
+
+`DOMAIN_MODEL.md`
+
+---
+
+## ACTION CHAIN 05 — SYSTEM ARCHITECTURE
+
+Thiết kế:
+
+- frontend;
+- backend;
+- database;
+- cache;
+- queue;
+- object storage;
+- AI service;
+- vector database;
+- external service;
+- authentication;
+- infrastructure.
+
+Phải mô tả data flow end-to-end.
+
+Output:
+
+`ARCHITECTURE.md`
+
+---
+
+## ACTION CHAIN 06 — PROJECT / REPOSITORY STRUCTURE
+
+Thiết kế toàn bộ directory tree.
+
+Phải xác định trách nhiệm của từng folder/module.
+
+Output:
+
+`PROJECT_STRUCTURE.md`
+
+---
+
+## ACTION CHAIN 07 — DATA ARCHITECTURE
+
+Thiết kế:
+
+- relational database;
+- schema;
+- table;
+- key;
+- index;
+- constraint;
+- migration;
+- seed;
+- audit;
+- soft delete;
+- transaction;
+- backup.
+
+Đồng thời thiết kế Vector Database nếu dự án sử dụng AI/RAG.
+
+Output:
+
+`DATABASE_SPEC.md`
+
+và
+
+`VECTOR_DATABASE_SPEC.md`
+
+---
+
+## ACTION CHAIN 08 — BACKEND ARCHITECTURE
+
+Thiết kế:
+
+- Controller / Route
+- DTO
+- Schema validation
+- Service
+- Domain logic
+- Repository
+- Middleware
+- Exception
+- Logging
+- Configuration
+- Jobs
+- Queue
+- Event
+- WebSocket nếu có.
+
+Output:
+
+`BACKEND_SPEC.md`
+
+---
+
+## ACTION CHAIN 09 — API CONTRACT
+
+Thiết kế API contract trước khi code.
+
+Mỗi endpoint phải có:
+
+- Method
+- Path
+- Authentication
+- Authorization
+- Request
+- Validation
+- Response
+- Error
+- Pagination
+- Filtering
+- Sorting
+- Example.
+
+Output:
+
+`API_CONTRACT.md`
+
+và OpenAPI skeleton nếu phù hợp.
+
+---
+
+## ACTION CHAIN 10 — FRONTEND ARCHITECTURE
+
+Thiết kế:
+
+- routing;
+- layouts;
+- pages;
+- components;
+- hooks;
+- services;
+- state management;
+- API client;
+- form validation;
+- error handling;
+- loading state;
+- empty state;
+- permission;
+- responsive;
+- accessibility.
+
+Output:
+
+`FRONTEND_SPEC.md`
+
+---
+
+## ACTION CHAIN 11 — AUTHENTICATION & SECURITY
+
+Thiết kế:
+
+- login;
+- logout;
+- register nếu có;
+- refresh token;
+- session;
+- RBAC;
+- ABAC nếu cần;
+- permission matrix;
+- route protection;
+- API protection;
+- password policy;
+- rate limit;
+- CORS;
+- CSRF;
+- XSS;
+- injection;
+- upload security;
+- secrets management;
+- audit logs.
+
+Output:
+
+`SECURITY_SPEC.md`
+
+---
+
+## ACTION CHAIN 12 — AI / RAG / VECTOR PIPELINE
+
+Nếu dự án có AI, thiết kế đầy đủ:
+
+Document → Parser → Cleaner → Chunker → Embedding → Vector DB → Retrieval → Reranking → Context Builder → LLM → Response.
+
+Phải xác định:
+
+- embedding model;
+- embedding dimension;
+- chunk size;
+- overlap;
+- metadata;
+- namespace;
+- collection;
+- tenant isolation;
+- retrieval strategy;
+- similarity metric;
+- top-K;
+- reranking;
+- document lifecycle;
+- reindex;
+- delete;
+- versioning.
+
+Output:
+
+`AI_RAG_SPEC.md`
+
+---
+
+## ACTION CHAIN 13 — TESTING & QUALITY GATE
+
+Thiết kế:
+
+- unit test;
+- integration test;
+- API test;
+- database test;
+- frontend test;
+- E2E;
+- security test;
+- performance test;
+- regression test;
+- acceptance test.
+
+Output:
+
+`TEST_STRATEGY.md`
+
+---
+
+## ACTION CHAIN 14 — DEVOPS / DEPLOYMENT / OBSERVABILITY
+
+Thiết kế:
+
+- environments;
+- Docker;
+- docker-compose;
+- environment variables;
+- CI;
+- CD;
+- staging;
+- production;
+- migrations;
+- backup;
+- restore;
+- healthcheck;
+- logging;
+- metrics;
+- tracing;
+- monitoring;
+- alerting;
+- rollback.
+
+Output:
+
+`DEPLOYMENT_SPEC.md`
+
+---
+
+## ACTION CHAIN 15 — FINAL READINESS GATE
+
+Kiểm tra toàn dự án trước khi implementation.
+
+Phải xác minh:
+
+- requirements complete;
+- architecture complete;
+- DB complete;
+- API complete;
+- frontend contract complete;
+- backend contract complete;
+- security complete;
+- AI pipeline complete;
+- test strategy complete;
+- deployment complete;
+- README complete;
+- traceability complete.
+
+Output:
+
+`BASELINE_READINESS_REPORT.md`
+
+Không được chuyển sang implementation nếu tồn tại blocker Critical.
+
+---
+
+# V. TẠO 20 IMPLEMENTATION PLANS
+
+Ngoài 15 Action Chains, hãy chia quá trình triển khai thành tối thiểu **20 Implementation Plans**.
+
+Mỗi Plan phải bao gồm:
+
+| Field | Nội dung |
+|---|---|
+| Plan ID | |
+| Name | |
+| Objective | |
+| Scope | |
+| Dependencies | |
+| Backend Tasks | |
+| Frontend Tasks | |
+| Database Tasks | |
+| Infrastructure Tasks | |
+| Files | |
+| Tests | |
+| Acceptance Criteria | |
+| Definition of Done | |
+| Risk | |
+| Rollback | |
+| Status | |
+
+Tối thiểu phải có 20 plan sau:
+
+### PLAN 01
+Repository Bootstrap
+
+### PLAN 02
+Environment & Configuration
+
+### PLAN 03
+Backend Foundation
+
+### PLAN 04
+Domain & Business Layer
+
+### PLAN 05
+Relational Database
+
+### PLAN 06
+Vector Database / Search Infrastructure
+
+### PLAN 07
+Authentication
+
+### PLAN 08
+Authorization / RBAC
+
+### PLAN 09
+Core API
+
+### PLAN 10
+File / Object Storage
+
+### PLAN 11
+AI / RAG Services
+
+### PLAN 12
+Frontend Foundation
+
+### PLAN 13
+Design System
+
+### PLAN 14
+Routing / Layout / Authentication State
+
+### PLAN 15
+Feature Pages & Components
+
+### PLAN 16
+Frontend ↔ Backend Integration
+
+### PLAN 17
+Testing Infrastructure
+
+### PLAN 18
+Security / Logging / Observability
+
+### PLAN 19
+CI/CD / Docker / Deployment
+
+### PLAN 20
+Documentation / Verification / Release
+
+Nếu dự án phức tạp, được phép mở rộng lên:
+
+25 / 30 / 40 plans.
+
+Nhưng tuyệt đối không được gộp những công việc lớn thành một task mơ hồ.
+
+---
+
+# VI. PROJECT SKELETON
+
+Hãy tạo project tree phù hợp công nghệ thực tế.
+
+Ví dụ logic:
+
+```text
+project-root/
+
+├── README.md
+├── .gitignore
+├── .editorconfig
+├── .env.example
+├── docker-compose.yml
+├── Makefile
+
+├── docs/
+│   ├── baseline/
+│   │   ├── PROJECT_BASELINE.md
+│   │   ├── PROJECT_CONTEXT.md
+│   │   ├── REQUIREMENTS.md
+│   │   ├── SCOPE.md
+│   │   ├── DOMAIN_MODEL.md
+│   │   ├── ARCHITECTURE.md
+│   │   ├── PROJECT_STRUCTURE.md
+│   │   ├── DATABASE_SPEC.md
+│   │   ├── VECTOR_DATABASE_SPEC.md
+│   │   ├── BACKEND_SPEC.md
+│   │   ├── FRONTEND_SPEC.md
+│   │   ├── API_CONTRACT.md
+│   │   ├── SECURITY_SPEC.md
+│   │   ├── AI_RAG_SPEC.md
+│   │   ├── TEST_STRATEGY.md
+│   │   ├── DEPLOYMENT_SPEC.md
+│   │   └── BASELINE_READINESS_REPORT.md
+│   │
+│   ├── adr/
+│   ├── diagrams/
+│   └── api/
+
+├── backend/
+│   ├── src/
+│   ├── tests/
+│   └── README.md
+
+├── frontend/
+│   ├── src/
+│   ├── tests/
+│   └── README.md
+
+├── database/
+│   ├── migrations/
+│   ├── seed/
+│   ├── schema/
+│   └── README.md
+
+├── ai/
+│   ├── ingestion/
+│   ├── chunking/
+│   ├── embeddings/
+│   ├── retrieval/
+│   ├── prompts/
+│   ├── evaluation/
+│   └── README.md
+
+├── infrastructure/
+│   ├── docker/
+│   ├── nginx/
+│   ├── scripts/
+│   ├── monitoring/
+│   └── deployment/
+
+├── tests/
+│   ├── integration/
+│   ├── e2e/
+│   ├── performance/
+│   └── security/
+
+└── scripts/
+```
+
+Không copy cấu trúc trên một cách máy móc.
+
+Phải điều chỉnh dựa trên stack thực tế.
+
+---
+
+# VII. DATABASE BASELINE
+
+Database specification phải có:
+
+- ERD;
+- entities;
+- tables;
+- columns;
+- datatype;
+- nullable;
+- default;
+- PK;
+- FK;
+- unique;
+- indexes;
+- constraints;
+- enums;
+- timestamps;
+- soft delete;
+- audit;
+- migration;
+- seed.
+
+Mỗi bảng phải giải thích:
+
+> Tại sao bảng này tồn tại?
+
+và:
+
+> Feature nào sử dụng bảng này?
+
+---
+
+# VIII. VECTOR DATABASE BASELINE
+
+Nếu có Vector DB phải xác định rõ:
+
+```text
+Vector Collection
+↓
+Vector Record
+↓
+Embedding
+↓
+Metadata
+↓
+Original Document Reference
+```
+
+Metadata tối thiểu xem xét:
+
+- document_id
+- chunk_id
+- user_id
+- tenant_id
+- course_id/project_id nếu phù hợp
+- source
+- file_name
+- file_type
+- page
+- section
+- created_at
+- version
+- access_scope
+
+Không được chỉ ghi chung chung:
+
+> "Dùng vector database cho AI."
+
+---
+
+# IX. API-FIRST CONTRACT
+
+Frontend và Backend không được tự triển khai contract riêng.
+
+Mọi API phải xuất phát từ:
+
+`API_CONTRACT.md`
+
+Flow:
+
+```text
+Requirement
+↓
+Use Case
+↓
+API Contract
+↓
+Backend
+↓
+Frontend API Client
+↓
+UI
+↓
+Integration Test
+↓
+E2E Test
+```
+
+Nếu API thay đổi:
+
+API Contract phải được cập nhật trước.
+
+---
+
+# X. REQUIREMENT TRACEABILITY MATRIX
+
+Tạo:
+
+`TRACEABILITY_MATRIX.md`
+
+Theo cấu trúc:
+
+| Requirement | Feature | Backend | API | DB | Frontend | Test | Status |
+|---|---|---|---|---|---|---|---|
+
+Mục tiêu:
+
+Không có requirement nào không truy ngược được tới implementation và test.
+
+---
+
+# XI. FEATURE MATRIX
+
+Tạo:
+
+`FEATURE_MATRIX.md`
+
+Phân loại:
+
+- Not Started
+- Skeleton
+- Partial
+- Implemented
+- Integrated
+- Tested
+- Verified
+- Accepted
+
+Không được gọi một feature là "Completed" chỉ vì đã có UI.
+
+Completed phải có:
+
+Backend + Frontend + DB + Permission + Validation + Error handling + Test + Integration.
+
+---
+
+# XII. PERMISSION MATRIX
+
+Nếu hệ thống có nhiều role phải tạo:
+
+`PERMISSION_MATRIX.md`
+
+Ví dụ:
+
+| Feature | Admin | Manager | Teacher | Student |
+|---|---:|---:|---:|---:|
+
+Phải kiểm soát permission ở cả:
+
+Frontend
+
+và
+
+Backend.
+
+Frontend hide button KHÔNG được coi là authorization.
+
+---
+
+# XIII. TEST MATRIX
+
+Tạo:
+
+`TEST_MATRIX.md`
+
+Theo cấu trúc:
+
+| Test ID | Requirement | Scenario | Type | Preconditions | Expected | Result |
+
+Mỗi feature quan trọng phải có:
+
+- happy path;
+- invalid input;
+- unauthorized;
+- forbidden;
+- empty state;
+- duplicate;
+- boundary;
+- failure;
+- recovery.
+
+---
+
+# XIV. ENVIRONMENT
+
+Thiết kế ít nhất:
+
+```text
+development
+test
+staging
+production
+```
+
+Tạo:
+
+`.env.example`
+
+Nhưng:
+
+- KHÔNG ghi secret thật;
+- KHÔNG hard-code password;
+- KHÔNG hard-code API key;
+- KHÔNG commit credential.
+
+Phân loại biến môi trường thành:
+
+- required;
+- optional;
+- secret;
+- runtime;
+- build-time.
+
+---
+
+# XV. README.md
+
+README phải thực sự sử dụng được.
+
+Bao gồm:
+
+1. Project overview
+2. Architecture
+3. Technology stack
+4. Requirements
+5. Installation
+6. Environment
+7. Database
+8. Migration
+9. Backend
+10. Frontend
+11. AI/Vector DB
+12. Testing
+13. Docker
+14. Development
+15. Production
+16. Troubleshooting
+17. Project structure
+18. Documentation links
+
+Một developer mới phải có khả năng chạy project chỉ dựa vào README.
+
+---
+
+# XVI. ARCHITECTURE DECISION RECORD
+
+Tạo thư mục:
+
+```text
+docs/adr/
+```
+
+Các quyết định quan trọng phải có ADR.
+
+Ví dụ:
+
+```text
+ADR-001-database-selection.md
+ADR-002-authentication-strategy.md
+ADR-003-vector-database.md
+ADR-004-state-management.md
+ADR-005-file-storage.md
+```
+
+ADR phải có:
+
+- Context
+- Decision
+- Alternatives
+- Advantages
+- Disadvantages
+- Consequences.
+
+---
+
+# XVII. DEPENDENCY MAP
+
+Tạo:
+
+`DEPENDENCY_MAP.md`
+
+Ví dụ:
+
+```text
+Auth
+ ↓
+User
+ ↓
+Permission
+ ↓
+Feature
+ ↓
+API
+ ↓
+Frontend
+```
+
+Phải xác định:
+
+- blocking dependency;
+- runtime dependency;
+- optional dependency;
+- external dependency.
+
+---
+
+# XVIII. CHANGE CONTROL
+
+Baseline sau khi được xác lập không được tự động thay đổi.
+
+Nếu cần thay đổi phải tạo:
+
+`CHANGE_REQUEST.md`
+
+Có:
+
+- Change ID
+- Requested Change
+- Reason
+- Affected Components
+- DB Impact
+- API Impact
+- Frontend Impact
+- Security Impact
+- Test Impact
+- Migration
+- Risk
+- Approval Status.
+
+---
+
+# XIX. AI CODING GUARDRAILS
+
+Tạo:
+
+`AGENT_RULES.md`
+
+Các coding agent sau này bắt buộc:
+
+1. Đọc baseline trước khi code.
+2. Xác định Plan ID.
+3. Xác định Requirement ID.
+4. Xác định files được phép thay đổi.
+5. Không sửa ngoài scope.
+6. Không tự đổi architecture.
+7. Không tự thêm dependency.
+8. Không tự đổi database schema.
+9. Không tự đổi API contract.
+10. Không xóa chức năng đang có.
+11. Không bỏ validation.
+12. Không bỏ security.
+13. Không hard-code secret.
+14. Không duplicate business logic.
+15. Phải chạy test.
+16. Phải báo cáo files đã thay đổi.
+17. Phải báo cáo test result.
+18. Phải báo cáo blocker.
+19. Phải cập nhật traceability.
+20. Chỉ đánh dấu DONE sau khi đạt Definition of Done.
+
+---
+
+# XX. DEFINITION OF DONE
+
+Một feature chỉ được DONE khi:
+
+```text
+Requirement defined
+✓
+Architecture defined
+✓
+Database completed
+✓
+Backend completed
+✓
+API completed
+✓
+Frontend completed
+✓
+Validation completed
+✓
+Authorization completed
+✓
+Error handling completed
+✓
+Unit tests passed
+✓
+Integration tests passed
+✓
+E2E passed
+✓
+Documentation updated
+✓
+Traceability updated
+✓
+Acceptance criteria passed
+```
+
+Thiếu bất kỳ mục Critical nào:
+
+KHÔNG được đánh dấu DONE.
+
+---
+
+# XXI. MỨC ĐỘ ƯU TIÊN
+
+Tất cả nhiệm vụ phải được gắn:
+
+- P0 — Critical
+- P1 — High
+- P2 — Medium
+- P3 — Low
+
+Đồng thời gắn độ khó:
+
+- XS
+- S
+- M
+- L
+- XL
+
+Và trạng thái:
+
+- TODO
+- READY
+- IN_PROGRESS
+- BLOCKED
+- REVIEW
+- TESTING
+- DONE
+
+---
+
+# XXII. CẤU TRÚC MỖI TASK
+
+Không được tạo task dạng:
+
+> "Làm backend."
+
+Task phải có dạng:
+
+```text
+TASK ID:
+PLAN:
+ACTION CHAIN:
+REQUIREMENT:
+TITLE:
+
+OBJECTIVE:
+
+INPUT:
+
+FILES TO CREATE:
+
+FILES TO MODIFY:
+
+FILES NOT ALLOWED TO MODIFY:
+
+IMPLEMENTATION:
+
+DEPENDENCIES:
+
+DATABASE IMPACT:
+
+API IMPACT:
+
+FRONTEND IMPACT:
+
+SECURITY:
+
+TEST:
+
+EXPECTED RESULT:
+
+ACCEPTANCE CRITERIA:
+
+DEFINITION OF DONE:
+
+ROLLBACK:
+```
+
+---
+
+# XXIII. SKELETON CODE
+
+Sau khi baseline được thiết kế xong, tạo skeleton cần thiết cho dự án.
+
+Skeleton có thể bao gồm:
+
+- folder;
+- module;
+- interface;
+- config;
+- route placeholder;
+- controller placeholder;
+- service placeholder;
+- repository placeholder;
+- schema;
+- migration skeleton;
+- API client;
+- frontend routing;
+- page skeleton;
+- component skeleton;
+- test skeleton;
+- Docker skeleton;
+- CI/CD skeleton.
+
+NHƯNG:
+
+Không triển khai toàn bộ business feature trong bước baseline.
+
+Baseline phải hoàn thành trước implementation.
+
+---
+
+# XXIV. PHÂN BIỆT 4 LỚP
+
+Phải phân biệt rõ:
+
+### LEVEL 1 — BASELINE
+Project rules và architecture.
+
+### LEVEL 2 — SKELETON
+Folder/file/module/interface.
+
+### LEVEL 3 — IMPLEMENTATION
+Business logic thật.
+
+### LEVEL 4 — VERIFICATION
+Test và nghiệm thu.
+
+Không được trộn cả bốn thành một bước duy nhất.
+
+---
+
+# XXV. PRE-IMPLEMENTATION GATE
+
+Trước khi viết feature đầu tiên hãy chạy baseline audit.
+
+Đánh giá:
+
+| Category | Status | Blocker |
+|---|---|---|
+| Requirements | | |
+| Scope | | |
+| Architecture | | |
+| Database | | |
+| Vector DB | | |
+| Backend | | |
+| API | | |
+| Frontend | | |
+| Security | | |
+| Testing | | |
+| DevOps | | |
+| Documentation | | |
+
+Chỉ được bắt đầu implementation nếu không còn P0 blocker.
+
+---
+
+# XXVI. OUTPUT FILES BẮT BUỘC
+
+Tối thiểu tạo:
+
+```text
+00_PROJECT_BASELINE.md
+01_PROJECT_CONTEXT.md
+02_REQUIREMENTS.md
+03_SCOPE.md
+04_DOMAIN_MODEL.md
+05_ARCHITECTURE.md
+06_PROJECT_STRUCTURE.md
+07_DATABASE_SPEC.md
+08_VECTOR_DATABASE_SPEC.md
+09_BACKEND_SPEC.md
+10_API_CONTRACT.md
+11_FRONTEND_SPEC.md
+12_SECURITY_SPEC.md
+13_AI_RAG_SPEC.md
+14_TEST_STRATEGY.md
+15_DEPLOYMENT_SPEC.md
+16_IMPLEMENTATION_PLAN.md
+17_TRACEABILITY_MATRIX.md
+18_FEATURE_MATRIX.md
+19_PERMISSION_MATRIX.md
+20_TEST_MATRIX.md
+21_DEPENDENCY_MAP.md
+22_AGENT_RULES.md
+23_CHANGE_CONTROL.md
+24_BASELINE_READINESS_REPORT.md
+README.md
+.env.example
+```
+
+Nếu một file không áp dụng:
+
+Không xóa file khỏi danh sách.
+
+Phải ghi:
+
+`NOT APPLICABLE — reason`
+
+---
+
+# XXVII. MASTER IMPLEMENTATION PLAN
+
+Trong:
+
+`16_IMPLEMENTATION_PLAN.md`
+
+Hãy trình bày:
+
+## Phase
+
+→ Plan
+
+→ Epic
+
+→ Feature
+
+→ Task
+
+→ Subtask
+
+→ File
+
+→ Test
+
+→ Acceptance
+
+→ Done.
+
+Để có thể truy vết:
+
+```text
+PROJECT
+ └── ACTION CHAIN
+      └── PLAN
+           └── EPIC
+                └── FEATURE
+                     └── TASK
+                          └── FILE
+                               └── TEST
+```
+
+---
+
+# XXVIII. BASELINE READINESS SCORE
+
+Cuối quá trình hãy đánh giá mức độ sẵn sàng theo từng hạng mục.
+
+Không dùng score để che giấu blocker.
+
+Ví dụ:
+
+```text
+Requirements        COMPLETE
+Architecture        COMPLETE
+Database            COMPLETE
+Backend Spec        COMPLETE
+Frontend Spec       COMPLETE
+Security            PARTIAL
+Testing             COMPLETE
+Deployment          PARTIAL
+Documentation       COMPLETE
+```
+
+Sau đó liệt kê riêng:
+
+### P0 BLOCKERS
+
+### P1 BLOCKERS
+
+### OPEN QUESTIONS
+
+### TBD ITEMS
+
+### ASSUMPTIONS
+
+---
+
+# XXIX. FINAL EXECUTION ROADMAP
+
+Cuối cùng hãy đưa ra thứ tự triển khai thực tế từ đầu đến cuối.
+
+Ví dụ logic:
+
+```text
+Baseline
+↓
+Repository
+↓
+Infrastructure
+↓
+Database
+↓
+Backend Core
+↓
+Authentication
+↓
+Authorization
+↓
+Core API
+↓
+Frontend Foundation
+↓
+Frontend Features
+↓
+AI/RAG
+↓
+Integration
+↓
+Testing
+↓
+Security Verification
+↓
+Deployment
+↓
+Acceptance
+```
+
+Nhưng phải điều chỉnh theo dependency thực tế của dự án.
+
+---
+
+# XXX. YÊU CẦU QUAN TRỌNG NHẤT
+
+Không tạo baseline mang tính lý thuyết.
+
+Baseline phải đạt mức:
+
+**IMPLEMENTATION-READY**
+
+Mỗi phần phải trả lời được:
+
+- làm gì;
+- ở đâu;
+- file nào;
+- module nào;
+- dependency nào;
+- input gì;
+- output gì;
+- database nào;
+- API nào;
+- permission nào;
+- test gì;
+- khi nào hoàn thành;
+- kiểm chứng bằng cách nào.
+
+Không sử dụng các task mơ hồ như:
+
+- "hoàn thiện backend";
+- "xây frontend";
+- "làm database";
+- "thêm AI";
+- "test hệ thống".
+
+Phải phân rã chúng thành công việc có thể thực thi và kiểm chứng.
+
+---
+
+# XXXI. QUY TẮC KHI THÔNG TIN CHƯA ĐỦ
+
+Không được tự bịa requirement.
+
+Nếu thiếu thông tin:
+
+1. vẫn hoàn thiện những phần có thể xác định;
+2. đánh dấu `[TBD]`;
+3. tạo `OPEN_QUESTIONS`;
+4. giải thích thông tin nào đang thiếu;
+5. xác định phần nào đang bị block;
+6. đề xuất phương án mặc định nhưng đánh dấu `[PROPOSED]`.
+
+Không được dừng toàn bộ baseline chỉ vì còn một vài thông tin chưa xác định.
+
+---
+
+# XXXII. NHIỆM VỤ CỦA BẠN BÂY GIỜ
+
+Hãy thực hiện lần lượt:
+
+### STEP 1
+Phân tích toàn bộ project hiện tại.
+
+### STEP 2
+Lập Inventory.
+
+### STEP 3
+Xác định Gap.
+
+### STEP 4
+Xác định Requirement.
+
+### STEP 5
+Thiết kế 15 Action Chains.
+
+### STEP 6
+Thiết kế minimum 20 Implementation Plans.
+
+### STEP 7
+Thiết kế Architecture.
+
+### STEP 8
+Thiết kế Database.
+
+### STEP 9
+Thiết kế Vector Database nếu cần.
+
+### STEP 10
+Thiết kế Backend.
+
+### STEP 11
+Thiết kế API Contract.
+
+### STEP 12
+Thiết kế Frontend.
+
+### STEP 13
+Thiết kế Security + Testing + DevOps.
+
+### STEP 14
+Tạo project skeleton và toàn bộ baseline files.
+
+### STEP 15
+Chạy Final Baseline Readiness Audit.
+
+Sau cùng cung cấp cho tôi:
+
+1. Project Summary
+2. Architecture Summary
+3. 15 Action Chains
+4. 20+ Implementation Plans
+5. Complete Project Tree
+6. File Manifest
+7. Dependency Map
+8. Requirement Traceability Matrix
+9. Feature Matrix
+10. Test Matrix
+11. Open Questions
+12. Risks
+13. P0/P1 Blockers
+14. Recommended Execution Order
+15. Baseline Readiness Report
+
+Mục tiêu cuối:
+
+> Sau baseline này, dự án phải có một bộ xương kỹ thuật đủ rõ ràng để AI coding agent có thể triển khai từng task một mà không phải tự đoán kiến trúc hoặc tự phát minh requirement.

@@ -1,0 +1,9 @@
+app:
+  name: x-sentinel
+  environment: development
+  demo_mode: true
+  input_mode: vector
+  artifact_dir: artifacts
+  model_dir: models
+  audit_log_path: artifacts/audit/events.jsonl
+  max_upload_bytes: 52428800

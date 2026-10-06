@@ -1,0 +1,19 @@
+# DEMO-ONLY mapping. Do not use as scientific evidence unless the mapping is independently verified and frozen.
+status: PROPOSED_DEMO_ONLY
+feature_count: 2381
+views:
+  structural:
+    kind: slice
+    start: 0
+    stop: 255
+  behavioral:
+    kind: slice
+    start: 255
+    stop: 1535
+  metadata:
+    kind: slice
+    start: 1535
+    stop: 2381
+notes:
+  - Counts match the source-level 255/1280/846 description.
+  - Exact authoritative index semantics remain a scientific freeze item.

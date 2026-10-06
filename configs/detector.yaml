@@ -1,0 +1,32 @@
+status: PARTIAL_BASELINE
+m1:
+  enabled: true
+  formula: tadr
+m2:
+  enabled: false
+  n_mix: null
+  alpha: null
+  sampling_seed: null
+m3:
+  enabled: true
+  aggregation: absolute_shap_sum_by_view
+m4:
+  enabled: false
+  strategy: null  # MUST FREEZE. Proposed concept: symmetric cross-view disagreement.
+m5:
+  enabled: false
+  rules_file: null
+  rules_sha256: null
+fusion:
+  strategy: null  # MUST FREEZE for scientific mode
+  weights: null
+calibration:
+  mode: d0
+  d1_threshold: null
+  fpr_target: 0.01
+research_gate:
+  asr_min: 0.50
+production_targets:
+  asr: 0.80
+  latency_p95_ms: 10.0
+  circuit_breaker_ms: 8.0

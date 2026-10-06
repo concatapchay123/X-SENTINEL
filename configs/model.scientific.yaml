@@ -1,0 +1,12 @@
+status: TBD_MUST_FREEZE
+adapter: lightgbm
+model_path: null
+model_sha256: null
+parameters:
+  learning_rate: null
+  num_leaves: null
+  n_estimators: null
+  random_state: null
+notes:
+  - Source documents conflict on LightGBM configuration.
+  - Fill and freeze exact values/model hash before E1/E0-E5.

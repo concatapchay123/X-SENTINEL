@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: X-SENTINEL Jev AI V3 Fragment
+  version: 0.3.0
+paths:
+  /v1/ai/status:
+    get:
+      summary: Read optional local Jev AI integration status
+  /v1/ai/explain:
+    post:
+      summary: Generate advisory explanation from an existing canonical analysis result
+  /v1/ai/runs/{run_id}:
+    get:
+      summary: Read one Jev AI run/audit record
+  /v1/ai/runs/{run_id}/feedback:
+    post:
+      summary: Submit analyst feedback for a Jev AI output
