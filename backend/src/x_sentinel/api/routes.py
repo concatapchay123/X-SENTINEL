@@ -5,9 +5,16 @@ from fastapi import APIRouter, HTTPException
 from x_sentinel.api.schemas import AnalysisResponse, VectorAnalysisRequest
 from x_sentinel.config import settings
 from x_sentinel.data.schema import VectorValidationError
+from x_sentinel.jev_ai.schemas import JevStatusResponse
+from x_sentinel.jev_ai.status import get_jev_status
 from x_sentinel.services.analysis_service import AnalysisService
 
 router = APIRouter()
+
+
+@router.get("/v1/ai/status", response_model=JevStatusResponse)
+def ai_status() -> JevStatusResponse:
+    return get_jev_status()
 
 
 def _service() -> AnalysisService:

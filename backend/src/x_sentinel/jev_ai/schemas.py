@@ -14,6 +14,25 @@ class JevMode(StrEnum):
     DOCS = "docs"
 
 
+class JevStatus(StrEnum):
+    DISABLED = "disabled"
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+    DEGRADED = "degraded"
+    MISCONFIGURED = "misconfigured"
+
+
+class JevStatusResponse(BaseModel):
+    enabled: bool
+    status: JevStatus
+    advisory_only: bool = True
+    model_id: str | None = None
+    prompt_version: str
+    endpoint_label: str = "lm_studio_local"
+    readiness_blocking: bool = False
+    error: str | None = None
+
+
 class JevContext(BaseModel):
     analysis_id: str | None = None
     request_id: str | None = None
