@@ -10,6 +10,8 @@ htmlcov/
 .DS_Store
 artifacts/*
 !artifacts/.gitkeep
+!artifacts/calibration/
+!artifacts/calibration/*
 models/*
 !models/README.md
 data/private/*

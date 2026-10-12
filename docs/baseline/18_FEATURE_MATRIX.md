@@ -8,7 +8,7 @@ Statuses: Not Started → Skeleton → Partial → Implemented → Integrated �
 | 3-view mapping | Tested / Verified (Demo locked; Scientific gated) | authoritative demo map hash (`276be235...`) + tests |
 | LightGBM/SHAP | Skeleton/Demo | real model identity + deterministic evidence |
 | M1–M5 | Skeleton; M4 freeze pending | unit/golden + experiments |
-| Fusion/D1 | Skeleton/Demo | frozen scientific protocol |
+| Fusion/D1 | Tested / Verified | frozen weighted_sum, D1 empirical quantile calibration, Wilson 95% CI, golden cases (BE-07) |
 | Microsoft SQL Server | V3 schema/migration defined | live migration/drift/backup/load evidence |
 | Core API | Skeleton | contract/integration tests |
 | Streamlit frontend | Skeleton | E2E exact rendering |

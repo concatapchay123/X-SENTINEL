@@ -8,7 +8,8 @@
 **PLAN BE-04 (DOMAIN, INPUT SCHEMA & SEMANTIC VIEWS) PASS.**  
 **PLAN BE-05 (LIGHTGBM & SHAP MODEL SERVICE) PASS.**  
 **PLAN BE-06 (M1–M5 DETECTOR CORE) PASS.**  
-**READY FOR FUSION & UNCERTAINTY CALIBRATION (BE-07).**  
+**PLAN BE-07 (FUSION, D0/D1 CALIBRATION & DECISION) PASS.**  
+**READY FOR AUDIT & EVIDENCE (BE-08).**  
 **NOT YET SCIENTIFICALLY ACCEPTED.**
 
 | Area | Status | Start blocker? | Final acceptance blocker? |
@@ -78,10 +79,23 @@
 - Detector Pipeline: `DetectorPipeline` orchestrates M1..M5 modules against 2,381-vector schema with zero runtime AI/LLM dependencies; returns typed signals and provenance metadata.
 - Automated tests: 102 targeted unit and pipeline tests across `test_be06_m1_tadr.py` (19), `test_be06_m2_strip.py` (24), `test_be06_m3_view.py` (16), `test_be06_m4_cross_view.py` (17), `test_be06_m5_semantic.py` (16), and `test_be06_detector_pipeline.py` (10); 262 passed across full repo test suite (2 skipped for unconfigured live DB).
 
+## BE-07 Milestone Verification
+
+- Canonical Fusion Strategy: Convex linear combination $S_{\text{fusion}} = \sum_{i=1}^5 w_i s_i$ with normalized weights $\sum w_i = 1.0$ (`WeightedSumFusion`) implemented and frozen alongside supported strategies (`LogisticRegressionFusion`, `MaxSignalFusion`, `DemoMeanFusion`).
+- Signal Input Validation Contract: Strict verification of 5 detector signals (`m1`..`m5`) in $[0.0, 1.0]$, finite numeric floats, case-insensitivity, and `SignalResult` object compatibility with zero silent fallback.
+- D0 Calibration: Alert budget operational mode with configurable baseline threshold $\tau_{\text{D0}} = 0.50$ requiring zero trusted reference data.
+- D1 Calibration: Empirical quantile threshold calibration targeting False Positive Rate $\le 0.01$ (1%) on trusted benign reference validation set, computing exact empirical FPR and Wilson score 95% confidence intervals ($[0.0054, 0.0183]$ at $N=1000$).
+- Calibration Artifact & Cryptographic Integrity: Versioned immutable JSON artifact (`artifacts/calibration/d1_calibration.json`) with SHA-256 payload checksum verification (`e899ad25ef88e267281503012803421816d27b720269f94bd3aca3e64c99fcd3`); tampering and missing artifact fail-closed security enforced.
+- Threshold Provenance & Management: Complete `ThresholdProvenance` dataclass tracking threshold ID, mode, value, source, config/artifact hashes, and empirical FPR/Wilson metrics; strict domain validation and boundary testing ($<, ==, >$).
+- Decision Policy: 3-state boundary model (`PASS`, `ALERT`, `QUARANTINE`) with strict demo isolation (`DEMO_ONLY` with candidate verdict tracking) and SQL Server check constraint compatibility.
+- Golden Decision Cases: 8 canonical reference cases covering clean benign, sub-threshold marginal, exact alert boundary, suspicious alert, exact quarantine boundary, severe trojan, demo mode isolation, and D1 false alarm suppression.
+- Zero Jev AI / LLM Dependency: Fusion, calibration, and decision pipeline executes strictly offline with zero external network or AI dependencies.
+- Automated tests: 72 targeted tests across `test_be07_calibration.py` (17), `test_be07_threshold_provenance.py` (12), `test_be07_fusion_engine.py` (28), `test_be07_decision_golden_cases.py` (10), and `test_be07_integration.py` (5); 337 passed across full repo test suite.
+
 ## P0 scientific decisions
 
 1. M4 exact canonical formula/normalization: FROZEN (Symmetric Cross-View Disagreement per ADR-005; ablations retained).
-2. Fusion/calibration protocol (BE-07 scope).
+2. Fusion/calibration protocol: FROZEN (Canonical `weighted_sum` + D1 empirical quantile calibration at $\text{FPR} \le 1\%$ with Wilson 95% CI; BE-07 scope completed).
 3. Scientific LightGBM model identity/config.
 4. Authoritative view mapping indices.
 

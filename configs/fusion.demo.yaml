@@ -1,0 +1,22 @@
+# DEMO-ONLY fusion configuration.
+version: 1.0.0-demo
+status: PROPOSED_DEMO_ONLY
+fusion:
+  strategy: weighted_sum
+  version: 1.0.0-demo
+  weights:
+    m1: 0.20
+    m2: 0.20
+    m3: 0.20
+    m4: 0.20
+    m5: 0.20
+calibration:
+  mode: d0
+  d0_threshold: 0.50
+  d1_threshold: null
+  d1_artifact_path: artifacts/calibration/d1_calibration.json
+  fpr_target: 0.01
+  quarantine_threshold: 0.85
+notes:
+  - Canonical equal-weight convex combination for demo evaluation.
+  - D0 operational budget threshold fixed at 0.50.

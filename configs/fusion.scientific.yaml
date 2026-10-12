@@ -1,0 +1,22 @@
+# SCIENTIFIC fusion configuration.
+version: 1.0.0-scientific
+status: FROZEN_CANDIDATE
+fusion:
+  strategy: weighted_sum
+  version: 1.0.0-scientific
+  weights:
+    m1: 0.20
+    m2: 0.20
+    m3: 0.20
+    m4: 0.20
+    m5: 0.20
+calibration:
+  mode: d1
+  d0_threshold: 0.50
+  d1_threshold: null
+  d1_artifact_path: artifacts/calibration/d1_calibration.json
+  fpr_target: 0.01
+  quarantine_threshold: 0.85
+notes:
+  - Frozen canonical weighted_sum strategy with equal M1-M5 baseline weighting.
+  - D1 calibration enforces empirical false positive rate <= 1% with Wilson 95% CI.
