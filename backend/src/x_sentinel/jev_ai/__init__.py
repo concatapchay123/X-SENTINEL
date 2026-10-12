@@ -14,6 +14,30 @@ from x_sentinel.jev_ai.client import (
     JevAITimeout,
     JevAIUnavailable,
 )
+from x_sentinel.jev_ai.guardrails import (
+    ALLOWED_CONTEXT_KEYS,
+    ALLOWED_LOCAL_HOSTS,
+    BLIND_DATA_KEYS,
+    FORBIDDEN_KEYS,
+    JevAllowlistViolation,
+    JevBlindDataBlocked,
+    JevContextBlocked,
+    JevContextSizeExceeded,
+    JevForbiddenKeyError,
+    apply_allowlist,
+    canonical_json_dumps,
+    compute_context_digest,
+    redact_sensitive_data,
+    redact_sensitive_text,
+    validate_context,
+    validate_local_endpoint,
+)
+from x_sentinel.jev_ai.prompt_builder import (
+    SYSTEM_POLICY,
+    build_messages,
+    build_safe_context,
+    project_canonical_evidence,
+)
 from x_sentinel.jev_ai.schemas import (
     JevContext,
     JevMode,
@@ -24,6 +48,10 @@ from x_sentinel.jev_ai.schemas import (
 )
 
 __all__ = [
+    "ALLOWED_CONTEXT_KEYS",
+    "ALLOWED_LOCAL_HOSTS",
+    "BLIND_DATA_KEYS",
+    "FORBIDDEN_KEYS",
     "JevAIClient",
     "JevAIConfigurationError",
     "JevAIConnectionError",
@@ -33,10 +61,26 @@ __all__ = [
     "JevAIResponseError",
     "JevAITimeout",
     "JevAIUnavailable",
+    "JevAllowlistViolation",
+    "JevBlindDataBlocked",
     "JevContext",
+    "JevContextBlocked",
+    "JevContextSizeExceeded",
+    "JevForbiddenKeyError",
     "JevMode",
     "JevRequest",
     "JevResponse",
     "JevStatus",
     "JevStatusResponse",
+    "SYSTEM_POLICY",
+    "apply_allowlist",
+    "build_messages",
+    "build_safe_context",
+    "canonical_json_dumps",
+    "compute_context_digest",
+    "project_canonical_evidence",
+    "redact_sensitive_data",
+    "redact_sensitive_text",
+    "validate_context",
+    "validate_local_endpoint",
 ]
