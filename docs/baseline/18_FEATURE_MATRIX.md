@@ -4,8 +4,8 @@ Statuses: Not Started → Skeleton → Partial → Implemented → Integrated �
 
 | Feature | Current V3 status | Exit evidence |
 |---|---|---|
-| Vector schema | Skeleton | UT/API invalid/boundary |
-| 3-view mapping | Skeleton/Demo | authoritative map hash + tests |
+| Vector schema | Tested / Verified | UT/API invalid/boundary (`test_be04_domain_schema_views.py`) |
+| 3-view mapping | Tested / Verified (Demo locked; Scientific gated) | authoritative demo map hash (`276be235...`) + tests |
 | LightGBM/SHAP | Skeleton/Demo | real model identity + deterministic evidence |
 | M1–M5 | Skeleton; M4 freeze pending | unit/golden + experiments |
 | Fusion/D1 | Skeleton/Demo | frozen scientific protocol |

@@ -4,8 +4,8 @@
 |---|---|---|---|---|---|
 | OPS-001/002 | `x_sentinel/config.py`, `.env.example`, `configs/jev_ai.yaml` | config/status, health | N/A | BE-01 (`test_be01_environment_config.py`) | PASS |
 | OPS-006 / FR-030 | `main.py`, `database/health.py`, `jev_ai/status.py` | health, ready, v1/ai/status | N/A | BE-03 (`test_be03_foundation_health_readiness.py`) | PASS |
-| FR-001/002 | `data/schema.py` | analyze/vector | Analyze | BE-04 / FE-03 | PARTIAL |
-| FR-003 | `data/views.py` | result evidence | Cross-view | BE-04 / FE-05 | PARTIAL |
+| FR-001/002 | `data/schema.py` | analyze/vector | Analyze | BE-04 (`test_be04_domain_schema_views.py`) / FE-03 | BE PASS |
+| FR-003 | `data/views.py` | result evidence | Cross-view | BE-04 (`test_be04_domain_schema_views.py`) / FE-05 | BE PASS |
 | FR-004/005 | `model/*` | analyze result | score/SHAP | BE-05 / FE-04/05 | PARTIAL |
 | FR-006..010 | `detection/*` | signal payload | M1–M5 cards | BE-06 / FE-04 | PARTIAL |
 | FR-011..013 | `fusion/*` | canonical result | decision banner | BE-07 / FE-04 | PARTIAL |

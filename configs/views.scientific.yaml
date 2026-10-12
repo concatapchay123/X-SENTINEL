@@ -1,6 +1,12 @@
+# SCIENTIFIC mapping. Unresolved until OQ-01 is decided via change-control.
+version: 1.0.0-scientific-draft
 status: TBD_MUST_FREEZE_BEFORE_SCIENTIFIC_RUN
 feature_count: 2381
+sha256: null
 views:
   structural: null
   behavioral: null
   metadata: null
+notes:
+  - Exact authoritative EMBER 2,381 view-index mapping is tracked as P0 Open Question OQ-01.
+  - Per ADR-005, scientific execution must fail-close until exact view indices are frozen.

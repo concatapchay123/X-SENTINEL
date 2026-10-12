@@ -1,6 +1,8 @@
 # DEMO-ONLY mapping. Do not use as scientific evidence unless the mapping is independently verified and frozen.
+version: 1.0.0-demo
 status: PROPOSED_DEMO_ONLY
 feature_count: 2381
+sha256: 276be235642b655efab3b8e2bd26af0dde4617ccac0d4d63195c636ee408b5cb
 views:
   structural:
     kind: slice
@@ -14,6 +16,13 @@ views:
     kind: slice
     start: 1535
     stop: 2381
+coverage:
+  total_features: 2381
+  structural_count: 255
+  behavioral_count: 1280
+  metadata_count: 846
+  disjoint: true
+  complete: true
 notes:
   - Counts match the source-level 255/1280/846 description.
-  - Exact authoritative index semantics remain a scientific freeze item.
+  - Exact authoritative index semantics remain a scientific freeze item (OQ-01 / ADR-005).

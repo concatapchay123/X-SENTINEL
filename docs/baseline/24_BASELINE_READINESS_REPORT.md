@@ -5,7 +5,8 @@
 **PLAN BE-01 (REPOSITORY, ENVIRONMENT & CONFIGURATION) PASS.**  
 **PLAN BE-02 (MICROSOFT SQL SERVER V3 SCHEMA & MIGRATION) PASS.**  
 **PLAN BE-03 (FASTAPI FOUNDATION, HEALTH & READINESS) PASS.**  
-**READY FOR DOMAIN, INPUT SCHEMA & 3-VIEW MAPPING (BE-04).**  
+**PLAN BE-04 (DOMAIN, INPUT SCHEMA & SEMANTIC VIEWS) PASS.**  
+**READY FOR LIGHTGBM & SHAP MODEL SERVICE (BE-05).**  
 **NOT YET SCIENTIFICALLY ACCEPTED.**
 
 | Area | Status | Start blocker? | Final acceptance blocker? |
@@ -47,6 +48,14 @@
 - Jev AI status isolation: When disabled (`XS_JEV_AI_ENABLED=false`), zero network calls are made to LM Studio; `GET /v1/ai/status` returns `status: "disabled"`; Jev status never blocks detector readiness. When enabled, probes local endpoint with safe timeout, reports `available`, `unavailable`, or `misconfigured` without blocking detector readiness.
 - Security: Zero database credentials, passwords, raw connection strings, or stack traces exposed in `/health`, `/ready`, `/v1/config/status`, or `/v1/ai/status`.
 - Automated tests: 22 targeted tests in `test_be03_foundation_health_readiness.py`, 60 passed across full test suite (2 skipped for unconfigured live DB).
+
+## BE-04 Milestone Verification
+
+- Canonical vector schema: exactly 2,381 features enforced; ordering preserved; strict finite numeric bounds; booleans, strings, bytes, None, and nested shapes rejected; batch validation and named feature dictionary reconstruction implemented.
+- Semantic views: Structural (255), Behavioral (1280), Metadata (846) view extraction verified; supports SliceSpec and IndicesSpec; mathematical bounds and disjoint/completeness integrity verified.
+- View mapping hash identity: deterministic SHA-256 fingerprint (`276be235642b655efab3b8e2bd26af0dde4617ccac0d4d63195c636ee408b5cb`) verified against `configs/views.demo.yaml`; index mutation and tampering detection verified.
+- Scientific isolation & fail-closed security: unfreezed scientific mapping in `configs/views.scientific.yaml` safely fails closed (raises RuntimeError) when scientific mode is requested while OQ-01 remains pending freeze.
+- Automated tests: 49 targeted tests in `test_be04_domain_schema_views.py`, 53 tests in data test suite (97% active statement coverage), 130 passed across full test suite (2 skipped for unconfigured live DB).
 
 ## P0 scientific decisions
 
