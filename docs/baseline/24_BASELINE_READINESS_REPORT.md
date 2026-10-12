@@ -7,7 +7,8 @@
 **PLAN BE-03 (FASTAPI FOUNDATION, HEALTH & READINESS) PASS.**  
 **PLAN BE-04 (DOMAIN, INPUT SCHEMA & SEMANTIC VIEWS) PASS.**  
 **PLAN BE-05 (LIGHTGBM & SHAP MODEL SERVICE) PASS.**  
-**READY FOR M1–M5 DETECTOR CORE (BE-06).**  
+**PLAN BE-06 (M1–M5 DETECTOR CORE) PASS.**  
+**READY FOR FUSION & UNCERTAINTY CALIBRATION (BE-07).**  
 **NOT YET SCIENTIFICALLY ACCEPTED.**
 
 | Area | Status | Start blocker? | Final acceptance blocker? |
@@ -17,7 +18,7 @@
 | Backend Foundation / Readiness (BE-03) | COMPLETE PASS | No | No |
 | Requirements | COMPLETE V3 | No | No |
 | Architecture | COMPLETE V3 | No | actual integration evidence |
-| Detection core | PARTIAL inherited skeleton | No | scientific configs + E0–E5 evidence |
+| Detection core | COMPLETE PASS (BE-06 frozen core) | No | BE-07 fusion + E0–E5 evidence |
 | Backend API | PARTIAL | No | contract/integration tests |
 | Frontend | PARTIAL runnable Streamlit | No | E2E/UX evidence |
 | Jev AI spec | COMPLETE baseline | No | real model ID + integration/evaluation evidence |
@@ -67,10 +68,20 @@
 - Scientific isolation & fail-closed security: unfreezed scientific config in `configs/model.scientific.yaml` safely fails closed (raises `ModelConfigUnresolvedError`) while OQ-02 is pending; demo adapter disallowed when `allow_demo=False`; zero unauthorized fallback to demo on scientific failure.
 - Automated tests: 30 targeted tests in `test_be05_lightgbm_shap_service.py`, 157 passed across full repo suite (5 skipped/deselected for unconfigured live DB).
 
+## BE-06 Milestone Verification
+
+- M1 TADR detector: Canonical temporal/perturbation drift ratio $S_{\text{M1}} = \frac{|\Delta y|}{|\Delta y_{\text{ref}}| + \epsilon}$ implemented with $\epsilon=10^{-12}$, finite float validation, zero-denominator guard, and deterministic `SignalResult` output contract.
+- M2 STRIP detector: Tabular STRIP input blending $(1-\alpha)x + \alpha x_b$, Shannon entropy calculation $H(p) = -p\log_2 p - (1-p)\log_2(1-p)$, and mean perturbation entropy $S_{\text{M2}} = \frac{1}{N}\sum H(p_i)$ implemented with $N=16, \alpha=0.2$, seed=42, and deterministic benign pool fallback.
+- M3 View Concentration detector: Absolute SHAP sum aggregation per view $c_v = \sum_{j \in V_v} |\phi_j|$, distribution $p_v = \frac{c_v}{\sum c_k}$, normalized entropy $H = -\sum p_v \log_2 p_v$, and concentration score $S_{\text{M3}} = 1 - \frac{H}{\log_2 K}$ implemented.
+- M4 Cross-View Disagreement detector: Canonical symmetric cross-view disagreement $S_{\text{M4}} = 0.5 \sum_{i<j} |y_i - y_j| \in [0, 1]$ frozen per ADR-005, alongside 4 ablation strategies (`view_std`, `behavioral_metadata_gap`, `full_vs_behavioral_gap`, `max_pairwise_difference`) configurable via `configs/detector.yaml`.
+- M5 Semantic Plausibility detector: Physical PE invariant rule evaluator implemented across 8 canonical rules (`configs/m5_rules.json`); cryptographic SHA-256 verification (`2e8c599aa9fded31c8d27eb0d96f45743a087572f696bc8e3bdb0f69d5ca184d`) enforced fail-closed (`M5RulesIntegrityError`).
+- Detector Pipeline: `DetectorPipeline` orchestrates M1..M5 modules against 2,381-vector schema with zero runtime AI/LLM dependencies; returns typed signals and provenance metadata.
+- Automated tests: 102 targeted unit and pipeline tests across `test_be06_m1_tadr.py` (19), `test_be06_m2_strip.py` (24), `test_be06_m3_view.py` (16), `test_be06_m4_cross_view.py` (17), `test_be06_m5_semantic.py` (16), and `test_be06_detector_pipeline.py` (10); 262 passed across full repo test suite (2 skipped for unconfigured live DB).
+
 ## P0 scientific decisions
 
-1. M4 exact canonical formula/normalization.
-2. Fusion/calibration protocol.
+1. M4 exact canonical formula/normalization: FROZEN (Symmetric Cross-View Disagreement per ADR-005; ablations retained).
+2. Fusion/calibration protocol (BE-07 scope).
 3. Scientific LightGBM model identity/config.
 4. Authoritative view mapping indices.
 

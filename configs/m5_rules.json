@@ -1,0 +1,107 @@
+{
+  "version": "1.0.0-canonical",
+  "artifact_name": "m5_semantic_plausibility_rules",
+  "feature_count": 2381,
+  "description": "Frozen semantic plausibility rules and physical PE invariant bounds for EMBER 2,381 vector validation",
+  "rules": [
+    {
+      "rule_id": "RULE-01-BYTE-HISTOGRAM-NON-NEGATIVE",
+      "name": "Byte Histogram Non-negativity",
+      "description": "Byte frequencies in indices [0, 255] must be non-negative finite values",
+      "kind": "range",
+      "indices_start": 0,
+      "indices_end": 256,
+      "min_value": 0.0,
+      "max_value": 1.0,
+      "tolerance": 1e-06,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-02-BYTE-ENTROPY-HISTOGRAM-BOUNDS",
+      "name": "Byte Entropy Histogram Bounds",
+      "description": "Byte entropy histogram values in indices [256, 511] must be within [0.0, 8.0] Shannon bits",
+      "kind": "range",
+      "indices_start": 256,
+      "indices_end": 512,
+      "min_value": 0.0,
+      "max_value": 8.0,
+      "tolerance": 0.0001,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-03-GENERAL-FILE-SIZE-NON-NEGATIVE",
+      "name": "General File Size Non-negativity",
+      "description": "General file size at index 2175 must be non-negative",
+      "kind": "range",
+      "indices_start": 2175,
+      "indices_end": 2176,
+      "min_value": 0.0,
+      "max_value": 1000000000000.0,
+      "tolerance": 0.0,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-04-GENERAL-VSIZE-NON-NEGATIVE",
+      "name": "General Virtual Size Non-negativity",
+      "description": "General virtual size at index 2176 must be non-negative",
+      "kind": "range",
+      "indices_start": 2176,
+      "indices_end": 2177,
+      "min_value": 0.0,
+      "max_value": 1000000000000.0,
+      "tolerance": 0.0,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-05-BOOLEAN-FLAGS-BOUNDS",
+      "name": "PE Characteristic Boolean Flags",
+      "description": "Binary indicator flags (has_debug, has_reloc, has_resources, has_sig, has_tls) at indices [2177, 2183] must be binary [0, 1]",
+      "kind": "range",
+      "indices_start": 2177,
+      "indices_end": 2184,
+      "min_value": 0.0,
+      "max_value": 1.0,
+      "tolerance": 0.0001,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-06-IMPORT-EXPORT-COUNTS-NON-NEGATIVE",
+      "name": "Import and Export Counts Non-negativity",
+      "description": "Import and export symbol counts at indices 2178, 2179, 2184 must be non-negative",
+      "kind": "range",
+      "indices": [
+        2178,
+        2179,
+        2184
+      ],
+      "min_value": 0.0,
+      "max_value": 1000000000.0,
+      "tolerance": 0.0,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-07-SECTION-SIZES-NON-NEGATIVE",
+      "name": "Section Sizes Non-negativity",
+      "description": "Section sizes in structural view section info must be non-negative",
+      "kind": "range",
+      "indices_start": 512,
+      "indices_end": 600,
+      "min_value": 0.0,
+      "max_value": 1000000000000.0,
+      "tolerance": 0.0,
+      "weight": 1.0
+    },
+    {
+      "rule_id": "RULE-08-BYTE-HISTOGRAM-SUM-PLAUSIBILITY",
+      "name": "Byte Histogram Total Plausibility",
+      "description": "Sum of byte frequencies in indices [0, 255] should not exceed plausible normalized mass",
+      "kind": "sum_bound",
+      "indices_start": 0,
+      "indices_end": 256,
+      "min_sum": 0.0,
+      "max_sum": 1000.0,
+      "tolerance": 0.001,
+      "weight": 1.0
+    }
+  ]
+}

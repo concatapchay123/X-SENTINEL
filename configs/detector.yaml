@@ -1,24 +1,36 @@
 status: PARTIAL_BASELINE
+version: 1.0.0
 m1:
   enabled: true
   formula: tadr
+  eps: 1.0e-12
 m2:
-  enabled: false
-  n_mix: null
-  alpha: null
-  sampling_seed: null
+  enabled: true
+  formula: tabular_strip
+  n_mix: 16
+  alpha: 0.2
+  sampling_seed: 42
+  invert_entropy: true
 m3:
   enabled: true
   aggregation: absolute_shap_sum_by_view
+  metric: max_concentration
+  eps: 1.0e-12
 m4:
-  enabled: false
-  strategy: null  # MUST FREEZE. Proposed concept: symmetric cross-view disagreement.
+  enabled: true
+  strategy: symmetric_disagreement
+  ablation_strategies:
+    - view_std
+    - behavioral_metadata_gap
+    - full_vs_behavioral_gap
+    - max_pairwise_difference
 m5:
-  enabled: false
-  rules_file: null
-  rules_sha256: null
+  enabled: true
+  rules_file: configs/m5_rules.json
+  rules_sha256: 2e8c599aa9fded31c8d27eb0d96f45743a087572f696bc8e3bdb0f69d5ca184d
+  metric: plausibility
 fusion:
-  strategy: null  # MUST FREEZE for scientific mode
+  strategy: null  # MUST FREEZE for scientific mode (Owned by BE-07)
   weights: null
 calibration:
   mode: d0
