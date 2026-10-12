@@ -10,6 +10,7 @@ Statuses: Not Started → Skeleton → Partial → Implemented → Integrated �
 | M1–M5 | Skeleton; M4 freeze pending | unit/golden + experiments |
 | Fusion/D1 | Tested / Verified | frozen weighted_sum, D1 empirical quantile calibration, Wilson 95% CI, golden cases (BE-07) |
 | Microsoft SQL Server | V3 schema/migration defined | live migration/drift/backup/load evidence |
+| Audit & Evidence | Tested / Verified | Canonical evidence schema, SHA-256 integrity, write failure rollback, repositories (`test_be08_*`) |
 | Core API | Skeleton | contract/integration tests |
 | Streamlit frontend | Skeleton | E2E exact rendering |
 | Jev AI client/guardrails | V3 skeleton | mocked + live local-model integration tests |

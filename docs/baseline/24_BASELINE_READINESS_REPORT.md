@@ -9,7 +9,8 @@
 **PLAN BE-05 (LIGHTGBM & SHAP MODEL SERVICE) PASS.**  
 **PLAN BE-06 (M1–M5 DETECTOR CORE) PASS.**  
 **PLAN BE-07 (FUSION, D0/D1 CALIBRATION & DECISION) PASS.**  
-**READY FOR AUDIT & EVIDENCE (BE-08).**  
+**PLAN BE-08 (AUDIT, EVIDENCE & ARTIFACT CONTRACTS) PASS.**  
+**READY FOR CORE API, HISTORY & ALERTS (BE-09).**  
 **NOT YET SCIENTIFICALLY ACCEPTED.**
 
 | Area | Status | Start blocker? | Final acceptance blocker? |
@@ -91,6 +92,17 @@
 - Golden Decision Cases: 8 canonical reference cases covering clean benign, sub-threshold marginal, exact alert boundary, suspicious alert, exact quarantine boundary, severe trojan, demo mode isolation, and D1 false alarm suppression.
 - Zero Jev AI / LLM Dependency: Fusion, calibration, and decision pipeline executes strictly offline with zero external network or AI dependencies.
 - Automated tests: 72 targeted tests across `test_be07_calibration.py` (17), `test_be07_threshold_provenance.py` (12), `test_be07_fusion_engine.py` (28), `test_be07_decision_golden_cases.py` (10), and `test_be07_integration.py` (5); 337 passed across full repo test suite.
+
+## BE-08 Milestone Verification
+
+- Canonical Evidence Schema: All 19 fields from `27_EVIDENCE_SCHEMA.md` (`request_id`, `run_id`, `timestamp`, `code_commit`, `build_digest`, `input_id`, `input_mode`, `view_map_hash`, `model_hash`, `model_config_hash`, `detector_config_hash`, `seed`, `malware_score`, `signals`, `fusion_score`, `threshold_id`, `decision`, `latency_ms`, `demo_mode`) implemented with strict domain validation.
+- Scientific Acceptance Guard: Enforces hard boundary `validate_for_scientific_acceptance()` which strictly rejects `demo_mode=true` and non-canonical decisions (`ScientificEvidenceRejectedError`).
+- Cryptographic Hash Integrity: RFC 8785 / JCS canonical JSON serialization (sorted keys, compact separators `(',', ':')`, UTF-8) with deterministic SHA-256 calculation. Verified invariance to dictionary key ordering and frozen reference golden hash `994e7f813be6702d9d4def0d93edc47ff4dc1fd5249af19e65768d106a59594e`.
+- Tamper Resistance: Tampering across any of the 19 fields raises `EvidenceIntegrityError`; in-place mutation prevented by frozen dataclass contract (`EvidenceImmutabilityError` / `FrozenInstanceError`).
+- Artifact Contracts: Streaming SHA-256 calculation, metadata preservation, checksum mismatch detection (`ArtifactIntegrityError`), missing file handling (`ArtifactNotFoundError`), and directory traversal prevention (`ArtifactSecurityError`).
+- Repositories & SQL Server Persistence: `AnalysisJobRepository`, `AnalysisResultRepository`, `DetectorScoreRepository`, `ArtifactRepository`, `AuditEventRepository` (strictly append-only), and `CanonicalEvidenceRepository` (atomic unit-of-work coordinator) implemented and verified on SQLite and live canonical Microsoft SQL Server.
+- Fail-Closed Audit Write Failure: Database commit failures trigger transaction rollback without orphan partial records or false success; unwriteable audit paths raise `AuditWriteFailureError`; scientific detector truth is preserved untouched; zero Jev AI interference during failure handling.
+- Automated tests: 46 targeted tests across 7 test suites (`test_be08_canonical_evidence_contract.py` (14), `test_be08_evidence_immutability.py` (3), `test_be08_evidence_hashing_integrity.py` (5), `test_be08_artifact_contracts.py` (8), `test_be08_repositories.py` (8), `test_be08_audit_write_failure.py` (6), `test_be08_end_to_end_integration.py` (2)); 383 passed across full repo test suite.
 
 ## P0 scientific decisions
 
