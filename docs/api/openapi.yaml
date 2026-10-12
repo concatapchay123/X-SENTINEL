@@ -1,42 +1,990 @@
 openapi: 3.1.0
 info:
-  title: X-SENTINEL API
-  version: 0.1.0-baseline
+  title: X-SENTINEL
+  version: 0.3.0-baseline-v3
 paths:
-  /health:
+  /v1/ai/status:
     get:
+      tags:
+      - AI Advisory
+      summary: Get Jev AI LM Studio status
+      operationId: ai_status_v1_ai_status_get
       responses:
-        '200': {description: OK}
-  /ready:
-    get:
-      responses:
-        '200': {description: readiness status}
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JevStatusResponse'
   /v1/analyze/vector:
     post:
-      summary: Analyze a 2381-feature EMBER vector
+      tags:
+      - Analysis
+      summary: Analyze a 2,381-feature EMBER vector
+      operationId: analyze_vector_v1_analyze_vector_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorAnalysisRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /v1/analyze/file:
+    post:
+      tags:
+      - Analysis
+      summary: Analyze uploaded binary file (Phase 2 Gated)
+      operationId: analyze_file_v1_analyze_file_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /v1/analysis:
+    get:
+      tags:
+      - History
+      summary: List analysis history with pagination and filtering
+      operationId: list_analysis_history_v1_analysis_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          description: Page limit
+          default: 50
+          title: Limit
+        description: Page limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Page offset
+          default: 0
+          title: Offset
+        description: Page offset
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by job status
+          title: Status
+        description: Filter by job status
+      - name: decision
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Filter by decision: pass, alert, quarantine'
+          title: Decision
+        description: 'Filter by decision: pass, alert, quarantine'
+      - name: input_mode
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Filter by input mode: vector, raw_pe'
+          title: Input Mode
+        description: 'Filter by input mode: vector, raw_pe'
+      - name: demo_mode
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          description: Filter by demo_mode
+          title: Demo Mode
+        description: Filter by demo_mode
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisHistoryListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/analysis/{analysis_id}:
+    get:
+      tags:
+      - History
+      summary: Get detailed analysis result by UUID or request_id
+      operationId: get_analysis_detail_v1_analysis__analysis_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: analysis_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Analysis Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisDetailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/analysis/{analysis_id}/evidence:
+    get:
+      tags:
+      - Evidence
+      summary: Get verified canonical evidence for an analysis
+      operationId: get_analysis_evidence_v1_analysis__analysis_id__evidence_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: analysis_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Analysis Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanonicalEvidenceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/alerts:
+    get:
+      tags:
+      - Alerts
+      summary: List alerts with filtering and pagination
+      operationId: list_alerts_v1_alerts_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          description: Query limit
+          default: 50
+          title: Limit
+        description: Query limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Query offset
+          default: 0
+          title: Offset
+        description: Query offset
+      - name: severity
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Filter by severity: low, medium, high, critical'
+          title: Severity
+        description: 'Filter by severity: low, medium, high, critical'
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 'Filter by status: open, acknowledged, resolved, dismissed'
+          title: Status
+        description: 'Filter by status: open, acknowledged, resolved, dismissed'
+      - name: analysis_job_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by associated analysis job UUID
+          title: Analysis Job Id
+        description: Filter by associated analysis job UUID
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/alerts/{alert_id}:
+    get:
+      tags:
+      - Alerts
+      summary: Get alert details by UUID
+      operationId: get_alert_detail_v1_alerts__alert_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: alert_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Alert Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertSummary'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Alerts
+      summary: Update alert lifecycle state
+      operationId: update_alert_status_v1_alerts__alert_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: alert_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Alert Id
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VectorAnalysisRequest'
+              $ref: '#/components/schemas/AlertStatusUpdateRequest'
       responses:
         '200':
-          description: Analysis result
-        '409':
-          description: Scientific configuration unresolved
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertSummary'
         '422':
-          description: Invalid vector/request
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /health:
+    get:
+      tags:
+      - System
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Health Get
+  /ready:
+    get:
+      tags:
+      - System
+      summary: Ready
+      operationId: ready_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /v1/config/status:
+    get:
+      tags:
+      - System
+      summary: Config Status
+      operationId: config_status_v1_config_status_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Config Status V1 Config Status Get
 components:
   schemas:
-    VectorAnalysisRequest:
-      type: object
-      required: [features]
+    AlertListResponse:
       properties:
-        request_id: {type: [string, 'null']}
-        source_name: {type: [string, 'null']}
-        features:
+        items:
+          items:
+            $ref: '#/components/schemas/AlertSummary'
           type: array
-          minItems: 2381
-          maxItems: 2381
-          items: {type: number}
+          title: Items
+          description: List of alert summaries
+        total:
+          type: integer
+          title: Total
+          description: Total matching alerts count
+        limit:
+          type: integer
+          title: Limit
+          description: Query limit
+        offset:
+          type: integer
+          title: Offset
+          description: Query offset
+      type: object
+      required:
+      - total
+      - limit
+      - offset
+      title: AlertListResponse
+    AlertStatusUpdateRequest:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: 'Target alert status: acknowledged, resolved, or dismissed'
+      type: object
+      required:
+      - status
+      title: AlertStatusUpdateRequest
+    AlertSummary:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Alert UUID
+        analysis_job_id:
+          type: string
+          title: Analysis Job Id
+          description: Associated analysis job UUID
+        severity:
+          type: string
+          title: Severity
+          description: 'Alert severity: low, medium, high, or critical'
+        status:
+          type: string
+          title: Status
+          description: 'Alert status: open, acknowledged, resolved, or dismissed'
+        reason:
+          type: string
+          title: Reason
+          description: Explanation or detector verdict triggering the alert
+        created_at:
+          type: string
+          title: Created At
+          description: ISO 8601 alert creation timestamp
+        resolved_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Resolved At
+          description: ISO 8601 resolution timestamp if resolved
+      type: object
+      required:
+      - id
+      - analysis_job_id
+      - severity
+      - status
+      - reason
+      - created_at
+      title: AlertSummary
+    AnalysisDetailResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: UUID of the analysis job
+        request_id:
+          type: string
+          title: Request Id
+          description: Unique request identifier
+        status:
+          type: string
+          title: Status
+          description: Job status
+        input_mode:
+          type: string
+          title: Input Mode
+          description: 'Input mode: vector or raw_pe'
+        input_sha256:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Input Sha256
+          description: SHA-256 digest of input vector or binary
+        demo_mode:
+          type: boolean
+          title: Demo Mode
+          description: Demo mode indicator
+        created_at:
+          type: string
+          title: Created At
+          description: ISO 8601 creation timestamp
+        completed_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Completed At
+          description: ISO 8601 completion timestamp
+        error_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Code
+          description: Error code if job failed
+        error_message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Message
+          description: Error message if job failed
+        result:
+          anyOf:
+          - $ref: '#/components/schemas/AnalysisResultDetail'
+          - type: 'null'
+          description: Detailed analysis result record
+        scores:
+          items:
+            $ref: '#/components/schemas/DetectorScoreItem'
+          type: array
+          title: Scores
+          description: Detector scores M1 through M5
+        alerts:
+          items:
+            $ref: '#/components/schemas/AlertSummary'
+          type: array
+          title: Alerts
+          description: Alerts associated with this analysis
+        evidence_ref:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Evidence Ref
+          description: Evidence digest or reference
+      type: object
+      required:
+      - id
+      - request_id
+      - status
+      - input_mode
+      - demo_mode
+      - created_at
+      title: AnalysisDetailResponse
+    AnalysisHistoryListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/AnalysisJobSummary'
+          type: array
+          title: Items
+          description: List of analysis summaries
+        total:
+          type: integer
+          title: Total
+          description: Total count of matching records
+        limit:
+          type: integer
+          title: Limit
+          description: Maximum records requested
+        offset:
+          type: integer
+          title: Offset
+          description: Record offset requested
+      type: object
+      required:
+      - total
+      - limit
+      - offset
+      title: AnalysisHistoryListResponse
+    AnalysisJobSummary:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: UUID of the analysis job
+        request_id:
+          type: string
+          title: Request Id
+          description: Client or system request identifier
+        status:
+          type: string
+          title: Status
+          description: 'Job status: completed, failed, quarantined, running, queued'
+        input_mode:
+          type: string
+          title: Input Mode
+          description: 'Input mode: vector or raw_pe'
+        demo_mode:
+          type: boolean
+          title: Demo Mode
+          description: Flag indicating if job ran in demo mode
+        decision:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision
+          description: 'Persisted decision: pass, alert, quarantine, unknown'
+        malware_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Malware Score
+          description: Persisted malware score
+        suspicion_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Suspicion Score
+          description: Persisted fused suspicion score
+        created_at:
+          type: string
+          title: Created At
+          description: ISO 8601 creation timestamp
+        completed_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Completed At
+          description: ISO 8601 completion timestamp
+      type: object
+      required:
+      - id
+      - request_id
+      - status
+      - input_mode
+      - demo_mode
+      - created_at
+      title: AnalysisJobSummary
+    AnalysisResponse:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+          description: Unique analysis request identifier
+        status:
+          type: string
+          title: Status
+          description: 'Analysis status: completed, DEMO_ONLY, or quarantined'
+        demo_mode:
+          type: boolean
+          title: Demo Mode
+          description: Flag indicating whether demo mode was active
+        malware_score:
+          type: number
+          title: Malware Score
+          description: Primary LightGBM malware probability score in [0.0, 1.0]
+        signals:
+          additionalProperties:
+            type: number
+          type: object
+          title: Signals
+          description: Dictionary of detector signals (m1 through m5)
+        suspicion_score:
+          type: number
+          title: Suspicion Score
+          description: Fused suspicion score in [0.0, 1.0]
+        threshold:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Threshold
+          description: Applied decision threshold
+        decision:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision
+          description: 'Detector verdict: PASS, ALERT, QUARANTINE, or DEMO_ONLY'
+        view_contributions:
+          additionalProperties:
+            type: number
+          type: object
+          title: View Contributions
+          description: 'Decomposed feature view contributions: structural, behavioral,
+            metadata'
+        warnings:
+          items:
+            type: string
+          type: array
+          title: Warnings
+          description: Operational or policy warnings generated during analysis
+        evidence_ref:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Evidence Ref
+          description: Deterministic SHA-256 evidence hash or evidence storage URI
+        job_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Job Id
+          description: Database primary key UUID of the persisted analysis job
+      type: object
+      required:
+      - request_id
+      - status
+      - demo_mode
+      - malware_score
+      - signals
+      - suspicion_score
+      title: AnalysisResponse
+    AnalysisResultDetail:
+      properties:
+        malware_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Malware Score
+          description: Model malware score
+        suspicion_score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Suspicion Score
+          description: Fused suspicion score
+        threshold:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Threshold
+          description: Decision threshold applied
+        decision:
+          type: string
+          title: Decision
+          description: 'Persisted decision: pass, alert, quarantine, unknown'
+        latency_ms:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Latency Ms
+          description: End-to-end execution latency in milliseconds
+        view_contributions:
+          additionalProperties:
+            type: number
+          type: object
+          title: View Contributions
+          description: Feature view contributions
+        evidence_uri:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Evidence Uri
+          description: URI reference to canonical evidence artifact
+        result_json:
+          additionalProperties: true
+          type: object
+          title: Result Json
+          description: Full serialized result record
+      type: object
+      required:
+      - decision
+      title: AnalysisResultDetail
+    CanonicalEvidenceResponse:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+          description: Unique request identifier
+        run_id:
+          type: string
+          title: Run Id
+          description: Execution run identifier
+        timestamp:
+          type: string
+          title: Timestamp
+          description: ISO 8601 UTC timestamp
+        code_commit:
+          type: string
+          title: Code Commit
+          description: Git commit hash provenance
+        build_digest:
+          type: string
+          title: Build Digest
+          description: Deterministic build artifact digest
+        input_id:
+          type: string
+          title: Input Id
+          description: SHA-256 digest of input data
+        input_mode:
+          type: string
+          title: Input Mode
+          description: 'Input mode: vector or raw_pe'
+        view_map_hash:
+          type: string
+          title: View Map Hash
+          description: SHA-256 digest of view mapping configuration
+        model_hash:
+          type: string
+          title: Model Hash
+          description: SHA-256 digest of active model weights/artifact
+        model_config_hash:
+          type: string
+          title: Model Config Hash
+          description: SHA-256 digest of model configuration
+        detector_config_hash:
+          type: string
+          title: Detector Config Hash
+          description: SHA-256 digest of detector configuration
+        seed:
+          type: integer
+          title: Seed
+          description: Random seed used during execution
+        malware_score:
+          type: number
+          title: Malware Score
+          description: LightGBM model inference score
+        signals:
+          additionalProperties:
+            type: number
+          type: object
+          title: Signals
+          description: Detector signals m1 through m5
+        fusion_score:
+          type: number
+          title: Fusion Score
+          description: Calibrated fused suspicion score
+        threshold_id:
+          type: string
+          title: Threshold Id
+          description: Identifier of the applied threshold policy
+        decision:
+          type: string
+          title: Decision
+          description: 'Canonical verdict: PASS, ALERT, QUARANTINE, or DEMO_ONLY'
+        latency_ms:
+          additionalProperties:
+            type: number
+          type: object
+          title: Latency Ms
+          description: Latency breakdown in milliseconds
+        demo_mode:
+          type: boolean
+          title: Demo Mode
+          description: Flag indicating if run was in demo mode
+        evidence_hash:
+          type: string
+          title: Evidence Hash
+          description: Deterministic SHA-256 digest over the canonical JSON payload
+        verified:
+          type: boolean
+          title: Verified
+          description: Integrity verification status (computed digest == stored digest)
+          default: true
+      type: object
+      required:
+      - request_id
+      - run_id
+      - timestamp
+      - code_commit
+      - build_digest
+      - input_id
+      - input_mode
+      - view_map_hash
+      - model_hash
+      - model_config_hash
+      - detector_config_hash
+      - seed
+      - malware_score
+      - signals
+      - fusion_score
+      - threshold_id
+      - decision
+      - latency_ms
+      - demo_mode
+      - evidence_hash
+      title: CanonicalEvidenceResponse
+    DetectorScoreItem:
+      properties:
+        detector_code:
+          type: string
+          title: Detector Code
+          description: 'Detector code: M1, M2, M3, M4, or M5'
+        score:
+          type: number
+          title: Score
+          description: Numerical score for this detector in [0.0, 1.0]
+        diagnostics:
+          additionalProperties: true
+          type: object
+          title: Diagnostics
+          description: Diagnostic metadata and intermediate calculations for this
+            detector
+      type: object
+      required:
+      - detector_code
+      - score
+      title: DetectorScoreItem
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    JevStatus:
+      type: string
+      enum:
+      - disabled
+      - available
+      - unavailable
+      - degraded
+      - misconfigured
+      title: JevStatus
+    JevStatusResponse:
+      properties:
+        enabled:
+          type: boolean
+          title: Enabled
+        status:
+          $ref: '#/components/schemas/JevStatus'
+        advisory_only:
+          type: boolean
+          title: Advisory Only
+          default: true
+        model_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model Id
+        prompt_version:
+          type: string
+          title: Prompt Version
+        endpoint_label:
+          type: string
+          title: Endpoint Label
+          default: lm_studio_local
+        readiness_blocking:
+          type: boolean
+          title: Readiness Blocking
+          default: false
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+      type: object
+      required:
+      - enabled
+      - status
+      - prompt_version
+      title: JevStatusResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VectorAnalysisRequest:
+      properties:
+        features:
+          items:
+            type: number
+          type: array
+          title: Features
+          description: 2,381-dimensional normalized numerical feature vector matching
+            EMBER
+        source_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Name
+          description: Optional human-readable source label or file identifier
+        request_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Request Id
+          description: Optional client-provided correlation or idempotency request
+            identifier
+      type: object
+      required:
+      - features
+      title: VectorAnalysisRequest
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

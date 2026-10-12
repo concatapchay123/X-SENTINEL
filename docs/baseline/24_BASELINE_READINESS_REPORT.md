@@ -10,7 +10,8 @@
 **PLAN BE-06 (M1–M5 DETECTOR CORE) PASS.**  
 **PLAN BE-07 (FUSION, D0/D1 CALIBRATION & DECISION) PASS.**  
 **PLAN BE-08 (AUDIT, EVIDENCE & ARTIFACT CONTRACTS) PASS.**  
-**READY FOR CORE API, HISTORY & ALERTS (BE-09).**  
+**PLAN BE-09 (CORE API, HISTORY & ALERTS) PASS.**  
+**READY FOR JEV AI LM STUDIO RUNTIME CLIENT (BE-10).**  
 **NOT YET SCIENTIFICALLY ACCEPTED.**
 
 | Area | Status | Start blocker? | Final acceptance blocker? |
@@ -21,11 +22,11 @@
 | Requirements | COMPLETE V3 | No | No |
 | Architecture | COMPLETE V3 | No | actual integration evidence |
 | Detection core | COMPLETE PASS (BE-06 frozen core) | No | BE-07 fusion + E0–E5 evidence |
-| Backend API | PARTIAL | No | contract/integration tests |
+| Backend API | COMPLETE PASS (BE-09 Core API) | No | contract/integration tests |
 | Frontend | PARTIAL runnable Streamlit | No | E2E/UX evidence |
 | Jev AI spec | COMPLETE baseline | No | real model ID + integration/evaluation evidence |
 | Jev AI runtime | SKELETON | No | endpoint/model tests if feature enabled |
-| Security | PARTIAL | No local | auth, secrets, retention, threat tests |
+| Security | PARTIAL (BE-09 Auth tested) | No local | auth, secrets, retention, threat tests |
 | Deployment | PARTIAL | No | staging/rollback/load evidence |
 
 ## BE-01 Milestone Verification
@@ -103,6 +104,16 @@
 - Repositories & SQL Server Persistence: `AnalysisJobRepository`, `AnalysisResultRepository`, `DetectorScoreRepository`, `ArtifactRepository`, `AuditEventRepository` (strictly append-only), and `CanonicalEvidenceRepository` (atomic unit-of-work coordinator) implemented and verified on SQLite and live canonical Microsoft SQL Server.
 - Fail-Closed Audit Write Failure: Database commit failures trigger transaction rollback without orphan partial records or false success; unwriteable audit paths raise `AuditWriteFailureError`; scientific detector truth is preserved untouched; zero Jev AI interference during failure handling.
 - Automated tests: 46 targeted tests across 7 test suites (`test_be08_canonical_evidence_contract.py` (14), `test_be08_evidence_immutability.py` (3), `test_be08_evidence_hashing_integrity.py` (5), `test_be08_artifact_contracts.py` (8), `test_be08_repositories.py` (8), `test_be08_audit_write_failure.py` (6), `test_be08_end_to_end_integration.py` (2)); 383 passed across full repo test suite.
+
+## BE-09 Milestone Verification
+
+- Core Analysis API: `POST /v1/analyze/vector` validates 2,381-dimensional features, executes detector inference (M1..M5), computes fusion score, persists canonical evidence via `CanonicalEvidenceRepository`, creates alerts for `ALERT` and `QUARANTINE` verdicts, and returns typed `AnalysisResponse`. Phase 2 raw PE upload `/v1/analyze/file` safely gated (501 `XS_FEATURE_DISABLED`).
+- Analysis History API: `GET /v1/analysis` provides paginated listing with stable `created_at desc` ordering, supporting filtering by `status`, `decision`, `input_mode`, and `demo_mode`. Detail endpoint `GET /v1/analysis/{analysis_id}` supports lookup by both UUID and `request_id`, returning job metadata, result record, M1..M5 detector scores, and alert references. Missing records return 404 `XS_ANALYSIS_NOT_FOUND`.
+- Alerts API: `GET /v1/alerts` lists alerts with pagination and filtering by `severity`, `status`, and `analysis_job_id`. Detail endpoint `GET /v1/alerts/{alert_id}` returns alert metadata. Lifecycle transition endpoint `PATCH /v1/alerts/{alert_id}` strictly enforces allowed state transitions (`open` -> `acknowledged` -> `resolved`/`dismissed`), records resolution timestamps, rejects invalid transitions (400 `XS_INVALID_TRANSITION`), and records append-only audit events.
+- Canonical Evidence API: `GET /v1/analysis/{analysis_id}/evidence` provides read-only access to immutable canonical evidence, strictly verifying SHA-256 hash integrity. Tampering triggers 409 `XS_EVIDENCE_INTEGRITY_MISMATCH`; missing records trigger 404 `XS_EVIDENCE_NOT_FOUND`.
+- OpenAPI Contract: Generated OpenAPI 3.1.0 schema synchronized with `docs/api/openapi.yaml` (27,531 bytes). All 11 canonical endpoints registered, components schemas validated, security schemes defined (`HTTPBearer`), operation IDs verified unique, and frozen health/readiness contracts preserved.
+- Authorization: Server-side authorization verified under `api_auth_mode == "none"` (open dev access) and `api_auth_mode == "bearer"` (enforced token validation). Rejects missing credentials (401 `XS_UNAUTHENTICATED`), invalid tokens (401 `XS_INVALID_CREDENTIALS`), and role violations (403 `XS_FORBIDDEN` for operators accessing evidence or modifying alerts, and evaluators submitting analysis). Blocks client-side header forging.
+- Automated tests: 34 targeted tests across 4 test suites (`test_be09_openapi_contract.py` (7), `test_be09_authorization.py` (7), `test_be09_core_api.py` (18), `test_be09_integration.py` (2)); 417 passed across full repo test suite with zero regressions.
 
 ## P0 scientific decisions
 

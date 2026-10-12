@@ -11,7 +11,7 @@ Statuses: Not Started → Skeleton → Partial → Implemented → Integrated �
 | Fusion/D1 | Tested / Verified | frozen weighted_sum, D1 empirical quantile calibration, Wilson 95% CI, golden cases (BE-07) |
 | Microsoft SQL Server | V3 schema/migration defined | live migration/drift/backup/load evidence |
 | Audit & Evidence | Tested / Verified | Canonical evidence schema, SHA-256 integrity, write failure rollback, repositories (`test_be08_*`) |
-| Core API | Skeleton | contract/integration tests |
+| Core API | Tested / Verified | Canonical Analysis/History/Alerts/Evidence contracts, OpenAPI 3.1.0 contract tests, Role-based auth (`test_be09_*`) |
 | Streamlit frontend | Skeleton | E2E exact rendering |
 | Jev AI client/guardrails | V3 skeleton | mocked + live local-model integration tests |
 | Jev AI persistence/API | Planned/DB schema defined | BE-13 integration tests |

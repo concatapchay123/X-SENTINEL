@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from x_sentinel.audit.evidence import (
     CanonicalEvidence,
-    EvidenceIntegrityError,
-    compute_evidence_hash,
 )
 from x_sentinel.audit.writer import AuditWriteFailureError
 from x_sentinel.database.models import (
@@ -63,7 +60,7 @@ class CanonicalEvidenceRepository:
             try:
                 created_dt = datetime.fromisoformat(evidence.timestamp.replace("Z", "+00:00"))
             except Exception:
-                created_dt = datetime.now(timezone.utc)
+                created_dt = datetime.now(UTC)
 
             # 1. AnalysisJob
             job = AnalysisJob(
@@ -82,7 +79,7 @@ class CanonicalEvidenceRepository:
             )
             self.session.add(job)
 
-            # Map decision to database allowed check constraint: ('unknown','pass','alert','quarantine')
+            # Map decision to allowed check constraint: ('unknown','pass','alert','quarantine')
             db_decision_map = {
                 "PASS": "pass",
                 "ALERT": "alert",

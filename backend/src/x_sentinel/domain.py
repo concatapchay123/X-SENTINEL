@@ -23,3 +23,5 @@ class AnalysisResult:
     view_contributions: dict[str, float]
     warnings: list[str]
     evidence_ref: str | None = None
+    decision: str | None = None
+    job_id: str | None = None

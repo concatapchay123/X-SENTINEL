@@ -14,13 +14,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.allowed_origins.split(",") if o.strip()],
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "X-Request-ID"],
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Content-Type", "X-Request-ID", "Authorization"],
 )
 app.include_router(router)
 
 
-@app.get("/health")
+@app.get("/health", tags=["System"])
 def health() -> dict[str, object]:
     return {
         "status": "ok",
@@ -31,7 +31,7 @@ def health() -> dict[str, object]:
     }
 
 
-@app.get("/ready")
+@app.get("/ready", tags=["System"])
 def ready() -> JSONResponse:
     db = database_health() if settings.database_required else None
     db_ready = True if db is None else db.ok
@@ -59,7 +59,7 @@ def ready() -> JSONResponse:
     return JSONResponse(status_code=200 if is_ready else 503, content=payload)
 
 
-@app.get("/v1/config/status")
+@app.get("/v1/config/status", tags=["System"])
 def config_status() -> dict[str, object]:
     db = database_health() if settings.database_required else None
     return {
