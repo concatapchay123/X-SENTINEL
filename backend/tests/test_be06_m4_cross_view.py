@@ -140,3 +140,12 @@ class TestM4CrossViewDetectorClass:
         res = detector.detect([1.0, 0.0, 0.0])
         assert res.score == 0.0
         assert res.diagnostics["status"] == "DISABLED"
+
+    def test_detector_supports_numpy_array_regression(self) -> None:
+        import numpy as np
+
+        detector = M4CrossViewDetector()
+        arr = np.array([0.2, 0.5, 0.8], dtype=np.float32)
+        res = detector.detect(arr)
+        assert isinstance(res.score, float)
+        assert math.isclose(res.score, 0.6, rel_tol=1e-5)

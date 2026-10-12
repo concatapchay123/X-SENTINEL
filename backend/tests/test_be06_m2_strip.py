@@ -208,3 +208,32 @@ class TestM2StripDetectorClass:
         detector = M2StripDetector()
         score = detector.score([0.0] * 2381, model_service=lambda x: 1.0)
         assert score == 1.0
+
+    def test_detector_with_real_demo_model_service_regression(self) -> None:
+        from x_sentinel.model.demo import DemoModelService
+
+        detector = M2StripDetector(model_service=DemoModelService())
+        vec = [0.0] * 2381
+        res = detector.detect(vec)
+        assert isinstance(res.score, float)
+        assert 0.0 <= res.score <= 1.0
+        assert "average_entropy" in res.diagnostics
+
+    def test_detector_with_real_lightgbm_service_regression(self) -> None:
+        from pathlib import Path
+        from x_sentinel.model.lightgbm_service import LightGBMService
+
+        model_path = Path("datasets/ember2018/ember_model_2018.txt")
+        if not model_path.exists():
+            pytest.skip("Ember 2018 model artifact not found")
+
+        lgb_service = LightGBMService(
+            model_path=model_path,
+            expected_sha256="509de4a83e2d76b69fb3025ced0429e5f40f6a95ca40122b9eedd03317fff5e2",
+        )
+        detector = M2StripDetector(model_service=lgb_service)
+        vec = [0.0] * 2381
+        res = detector.detect(vec)
+        assert isinstance(res.score, float)
+        assert 0.0 <= res.score <= 1.0
+        assert "average_entropy" in res.diagnostics

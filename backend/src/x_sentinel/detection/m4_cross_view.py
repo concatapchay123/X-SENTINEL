@@ -93,7 +93,7 @@ def _extract_3_views(view_scores: dict[str, float] | Sequence[float]) -> list[fl
             if len(view_scores) != 3:
                 raise ValueError(f"Expected 3 view signals, got {len(view_scores)}")
             vals = [float(v) for v in view_scores.values()]
-    elif isinstance(view_scores, (list, tuple)):
+    elif hasattr(view_scores, "__len__") and hasattr(view_scores, "__iter__") and not isinstance(view_scores, (str, bytes)):
         if len(view_scores) != 3:
             raise ValueError(f"Expected 3 view signals, got {len(view_scores)}")
         vals = [float(v) for v in view_scores]

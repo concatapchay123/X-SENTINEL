@@ -45,6 +45,10 @@ class ModelInferenceResult:
         yield self.score
         yield self.shap_values
 
+    def __float__(self) -> float:
+        """Allows direct numeric casting to float returning model inference score."""
+        return float(self.score)
+
 
 class DemoModelService:
     """Deterministic integration adapter. NOT scientific evidence."""
@@ -101,6 +105,14 @@ class DemoModelService:
             warnings=["DEMO_MODE_NOT_SCIENTIFIC_EVIDENCE"],
             explanation=explanation,
         )
+
+    def predict_proba(self, vector: Sequence[float]) -> float:
+        """Lightweight prediction returning only malware probability without SHAP overhead."""
+        valid_vector = validate_vector(vector)
+        n = max(len(valid_vector), 1)
+        mean = sum(valid_vector) / n
+        clamped_mean = max(min(mean, 20.0), -20.0)
+        return float(1.0 / (1.0 + math.exp(-clamped_mean)))
 
     def infer_batch(self, vectors: Sequence[Sequence[float]]) -> list[ModelInferenceResult]:
         valid_batch = validate_vector_batch(vectors)

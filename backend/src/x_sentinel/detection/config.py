@@ -110,6 +110,16 @@ class DetectorConfig:
     raw_config: dict[str, Any] = field(default_factory=dict)
 
 
+def _parse_bool(val: Any, default: bool = True) -> bool:
+    if val is None:
+        return default
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.strip().lower() in ("true", "1", "yes", "on")
+    return bool(val)
+
+
 def load_detector_config(config_source: Path | str | dict[str, Any] | None = None) -> DetectorConfig:
     if config_source is None:
         config_path = Path("configs/detector.yaml")
@@ -136,26 +146,26 @@ def load_detector_config(config_source: Path | str | dict[str, Any] | None = Non
 
     m1_data = data.get("m1", {}) or {}
     m1_cfg = M1Config(
-        enabled=bool(m1_data.get("enabled", True)),
+        enabled=_parse_bool(m1_data.get("enabled"), True),
         formula=str(m1_data.get("formula", "tadr")),
         eps=float(m1_data.get("eps", 1e-12)),
     )
 
     m2_data = data.get("m2", {}) or {}
     m2_cfg = M2Config(
-        enabled=bool(m2_data.get("enabled", True)),
+        enabled=_parse_bool(m2_data.get("enabled"), True),
         formula=str(m2_data.get("formula", "tabular_strip")),
         n_mix=int(m2_data.get("n_mix", 16) if m2_data.get("n_mix") is not None else 16),
         alpha=float(m2_data.get("alpha", 0.2) if m2_data.get("alpha") is not None else 0.2),
         sampling_seed=int(
             m2_data.get("sampling_seed", 42) if m2_data.get("sampling_seed") is not None else 42
         ),
-        invert_entropy=bool(m2_data.get("invert_entropy", True)),
+        invert_entropy=_parse_bool(m2_data.get("invert_entropy"), True),
     )
 
     m3_data = data.get("m3", {}) or {}
     m3_cfg = M3Config(
-        enabled=bool(m3_data.get("enabled", True)),
+        enabled=_parse_bool(m3_data.get("enabled"), True),
         aggregation=str(m3_data.get("aggregation", "absolute_shap_sum_by_view")),
         metric=str(m3_data.get("metric", "max_concentration")),
         eps=float(m3_data.get("eps", 1e-12)),
@@ -166,7 +176,7 @@ def load_detector_config(config_source: Path | str | dict[str, Any] | None = Non
     if strategy is None:
         strategy = "symmetric_disagreement"
     m4_cfg = M4Config(
-        enabled=bool(m4_data.get("enabled", True)),
+        enabled=_parse_bool(m4_data.get("enabled"), True),
         strategy=str(strategy),
         ablation_strategies=list(
             m4_data.get(
@@ -188,7 +198,7 @@ def load_detector_config(config_source: Path | str | dict[str, Any] | None = Non
         or "2e8c599aa9fded31c8d27eb0d96f45743a087572f696bc8e3bdb0f69d5ca184d"
     )
     m5_cfg = M5Config(
-        enabled=bool(m5_data.get("enabled", True)),
+        enabled=_parse_bool(m5_data.get("enabled"), True),
         rules_file=str(rules_file),
         rules_sha256=str(rules_sha256),
         metric=str(m5_data.get("metric", "plausibility")),

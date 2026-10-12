@@ -106,10 +106,16 @@ class M3ViewDetector:
             return view_map.split(shap_input)
         if view_map is not None and hasattr(view_map, "structural"):
             shap_list = list(shap_input)
+
+            def _extract_view(spec: Any) -> list[float]:
+                if hasattr(spec, "extract"):
+                    return list(spec.extract(shap_list))
+                return shap_list[spec.start : spec.stop]
+
             return {
-                "structural": shap_list[view_map.structural.start : view_map.structural.stop],
-                "behavioral": shap_list[view_map.behavioral.start : view_map.behavioral.stop],
-                "metadata": shap_list[view_map.metadata.start : view_map.metadata.stop],
+                "structural": _extract_view(view_map.structural),
+                "behavioral": _extract_view(view_map.behavioral),
+                "metadata": _extract_view(view_map.metadata),
             }
         raise ValueError(
             "M3 requires either a dict of {view_name: shap_values} or a flat SHAP vector with view_map."

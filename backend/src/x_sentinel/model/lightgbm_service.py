@@ -124,6 +124,13 @@ class LightGBMService:
             notes=["Scientific LightGBM model verified and loaded."],
         )
 
+    def predict_proba(self, vector: Sequence[float]) -> float:
+        """Run fast inference returning only probability in [0, 1] without SHAP overhead."""
+        valid_vector = validate_vector(vector)
+        matrix = np.asarray([valid_vector], dtype=np.float32)
+        probs = self._booster.predict(matrix)
+        return float(probs[0])
+
     def infer(self, vector: Sequence[float]) -> ModelInferenceResult:
         """Run deterministic inference and local SHAP on a single 2,381-dimensional vector."""
         valid_vector = validate_vector(vector)

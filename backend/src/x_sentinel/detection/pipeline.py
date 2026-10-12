@@ -97,11 +97,7 @@ class DetectorPipeline:
         # M3: View Contribution & Concentration
         contrib: dict[str, float] = {}
         if shap is not None and target_view_map is not None:
-            shap_views = {
-                "structural": shap[target_view_map.structural.start : target_view_map.structural.stop],
-                "behavioral": shap[target_view_map.behavioral.start : target_view_map.behavioral.stop],
-                "metadata": shap[target_view_map.metadata.start : target_view_map.metadata.stop],
-            }
+            shap_views = target_view_map.split(shap)
             results["m3"] = self.m3.detect(shap_views)
             contrib = results["m3"].diagnostics.get("contributions", {})
         else:

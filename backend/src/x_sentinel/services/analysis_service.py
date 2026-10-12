@@ -45,12 +45,7 @@ class AnalysisService:
         vector = validate_vector(features)
         rid = request_id or str(uuid.uuid4())
         malware_score, shap = self.model.infer(vector)
-        _views = self.view_map.split(vector)
-        shap_views = {
-            "structural": shap[self.view_map.structural.start : self.view_map.structural.stop],
-            "behavioral": shap[self.view_map.behavioral.start : self.view_map.behavioral.stop],
-            "metadata": shap[self.view_map.metadata.start : self.view_map.metadata.stop],
-        }
+        shap_views = self.view_map.split(shap)
         contrib = view_contributions(shap_views)
         signals = {
             "m1": m1_tadr(shap),

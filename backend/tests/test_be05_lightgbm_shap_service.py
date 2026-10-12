@@ -481,6 +481,30 @@ def test_integration_with_analysis_service():
     assert "m3" in result.signals
 
 
+def test_analysis_service_with_indices_spec_regression(tmp_path):
+    from x_sentinel.data.views import IndicesSpec, ViewMap
+
+    indices_view_map = ViewMap(
+        status="TEST",
+        structural=IndicesSpec(indices=list(range(0, 1000))),
+        behavioral=IndicesSpec(indices=list(range(1000, 2000))),
+        metadata=IndicesSpec(indices=list(range(2000, 2381))),
+    )
+    analysis_svc = AnalysisService(
+        audit_path=tmp_path / "test_events.jsonl",
+        view_map_path=Path("configs/views.demo.yaml"),
+        demo_mode=True,
+    )
+    analysis_svc.view_map = indices_view_map
+    vector = [0.0] * FEATURE_COUNT
+    result = analysis_svc.analyze_vector(vector)
+    assert result.status == "DEMO_ONLY"
+    assert 0.0 <= result.malware_score <= 1.0
+    assert "m1" in result.signals
+    assert "m3" in result.signals
+    assert "structural" in result.view_contributions
+
+
 def test_concurrent_inference_thread_safety():
     if not EMBER_MODEL_PATH.exists():
         pytest.skip(f"Model artifact not found at {EMBER_MODEL_PATH}")

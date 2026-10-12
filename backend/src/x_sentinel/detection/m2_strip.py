@@ -83,7 +83,9 @@ def tabular_strip(
         mixed = [(1.0 - alpha) * clean_vec[i] + alpha * float(benign_sample[i]) for i in range(dim)]
 
         pred_raw = model_fn(mixed)
-        if isinstance(pred_raw, tuple):
+        if hasattr(pred_raw, "score"):
+            pred_score = float(pred_raw.score)
+        elif isinstance(pred_raw, (tuple, list)):
             pred_score = float(pred_raw[0])
         else:
             pred_score = float(pred_raw)
@@ -156,11 +158,15 @@ class M2StripDetector:
         if target_model is None:
             raise ValueError("M2 requires a model_service or model_fn to perform inference on perturbed samples.")
 
+        if hasattr(target_model, "predict_proba"):
+            return target_model.predict_proba
         if hasattr(target_model, "infer"):
             return target_model.infer
         if callable(target_model):
             return target_model
-        raise TypeError(f"Model service must be callable or provide an infer() method, got {type(target_model)}")
+        raise TypeError(
+            f"Model service must be callable or provide an infer() or predict_proba() method, got {type(target_model)}"
+        )
 
     def _get_benign_pool(self, benign_pool: Sequence[Sequence[float]] | None = None, dim: int = 2381) -> list[list[float]]:
         pool = benign_pool if benign_pool is not None else self.benign_pool
