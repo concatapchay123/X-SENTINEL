@@ -1,0 +1,16 @@
+# Approved EMBER 2018 LightGBM model configuration.
+version: ember2018-v1
+status: FROZEN_CANDIDATE
+adapter: lightgbm
+model_path: datasets/ember2018/ember_model_2018.txt
+model_sha256: 509de4a83e2d76b69fb3025ced0429e5f40f6a95ca40122b9eedd03317fff5e2
+feature_count: 2381
+format: text
+objective: binary sigmoid:1
+parameters:
+  learning_rate: 0.05
+  num_trees: 1000
+  num_leaves: 1470
+notes:
+  - Official EMBER 2018 benchmark LightGBM model.
+  - Frozen candidate for E1/E0-E5 evaluation.

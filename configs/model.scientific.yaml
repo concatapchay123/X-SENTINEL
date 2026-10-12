@@ -1,7 +1,10 @@
+# SCIENTIFIC model configuration. Unresolved until OQ-02 is decided via change-control.
+version: 1.0.0-scientific-draft
 status: TBD_MUST_FREEZE
 adapter: lightgbm
 model_path: null
 model_sha256: null
+feature_count: 2381
 parameters:
   learning_rate: null
   num_leaves: null
@@ -9,4 +12,5 @@ parameters:
   random_state: null
 notes:
   - Source documents conflict on LightGBM configuration.
-  - Fill and freeze exact values/model hash before E1/E0-E5.
+  - Tracked as P0 Open Question OQ-02.
+  - Per ADR-005, scientific execution must fail-close until exact model/config/hash are frozen.

@@ -1,6 +1,8 @@
 status: DEMO_ONLY
+version: 1.0.0-demo
 adapter: deterministic_demo
 model_path: null
 random_seed: 42
+feature_count: 2381
 notes:
   - No scientific claim may use this adapter.

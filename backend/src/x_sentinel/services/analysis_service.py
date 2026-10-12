@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import uuid
+from pathlib import Path
+from typing import Any
 
 from x_sentinel.audit.writer import AuditWriter
 from x_sentinel.data.schema import validate_vector
@@ -14,7 +15,14 @@ from x_sentinel.model.demo import DemoModelService
 
 
 class AnalysisService:
-    def __init__(self, audit_path: Path, view_map_path: Path, demo_mode: bool = True):
+    def __init__(
+        self,
+        audit_path: Path,
+        view_map_path: Path,
+        demo_mode: bool = True,
+        model_config_path: Path | None = None,
+        model_service: Any = None,
+    ):
         self.demo_mode = demo_mode
         self.audit = AuditWriter(audit_path)
         self.view_map = load_view_map(view_map_path, allow_demo=demo_mode)
@@ -22,17 +30,26 @@ class AnalysisService:
             raise RuntimeError(
                 "Scientific mode remains gated until model/M4/fusion/view-map configs are frozen"
             )
-        self.model = DemoModelService()
+        if model_service is not None:
+            self.model = model_service
+        elif model_config_path is not None:
+            from x_sentinel.model.lightgbm_service import load_model_service
 
-    def analyze_vector(self, features: list[float], request_id: str | None = None) -> AnalysisResult:
+            self.model = load_model_service(model_config_path, allow_demo=demo_mode)
+        else:
+            self.model = DemoModelService()
+
+    def analyze_vector(
+        self, features: list[float], request_id: str | None = None
+    ) -> AnalysisResult:
         vector = validate_vector(features)
         rid = request_id or str(uuid.uuid4())
         malware_score, shap = self.model.infer(vector)
-        views = self.view_map.split(vector)
+        _views = self.view_map.split(vector)
         shap_views = {
-            "structural": shap[self.view_map.structural.start:self.view_map.structural.stop],
-            "behavioral": shap[self.view_map.behavioral.start:self.view_map.behavioral.stop],
-            "metadata": shap[self.view_map.metadata.start:self.view_map.metadata.stop],
+            "structural": shap[self.view_map.structural.start : self.view_map.structural.stop],
+            "behavioral": shap[self.view_map.behavioral.start : self.view_map.behavioral.stop],
+            "metadata": shap[self.view_map.metadata.start : self.view_map.metadata.stop],
         }
         contrib = view_contributions(shap_views)
         signals = {

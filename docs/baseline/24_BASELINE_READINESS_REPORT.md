@@ -6,7 +6,8 @@
 **PLAN BE-02 (MICROSOFT SQL SERVER V3 SCHEMA & MIGRATION) PASS.**  
 **PLAN BE-03 (FASTAPI FOUNDATION, HEALTH & READINESS) PASS.**  
 **PLAN BE-04 (DOMAIN, INPUT SCHEMA & SEMANTIC VIEWS) PASS.**  
-**READY FOR LIGHTGBM & SHAP MODEL SERVICE (BE-05).**  
+**PLAN BE-05 (LIGHTGBM & SHAP MODEL SERVICE) PASS.**  
+**READY FOR M1–M5 DETECTOR CORE (BE-06).**  
 **NOT YET SCIENTIFICALLY ACCEPTED.**
 
 | Area | Status | Start blocker? | Final acceptance blocker? |
@@ -56,6 +57,15 @@
 - View mapping hash identity: deterministic SHA-256 fingerprint (`276be235642b655efab3b8e2bd26af0dde4617ccac0d4d63195c636ee408b5cb`) verified against `configs/views.demo.yaml`; index mutation and tampering detection verified.
 - Scientific isolation & fail-closed security: unfreezed scientific mapping in `configs/views.scientific.yaml` safely fails closed (raises RuntimeError) when scientific mode is requested while OQ-01 remains pending freeze.
 - Automated tests: 49 targeted tests in `test_be04_domain_schema_views.py`, 53 tests in data test suite (97% active statement coverage), 130 passed across full test suite (2 skipped for unconfigured live DB).
+ 
+## BE-05 Milestone Verification
+
+- Versioned model loading: LightGBM model loading with dimension validation (2,381 features), tree verification (1,000 trees), format validation, and in-memory caching to eliminate redundant 127MB reloads implemented.
+- Model identity & artifact integrity: deterministic SHA-256 calculation (`509de4a83e2d76b69fb3025ced0429e5f40f6a95ca40122b9eedd03317fff5e2`), mismatch detection, missing/corrupted artifact detection, and structured `ModelMetadata` provenance verified.
+- LightGBM inference service: single-sample and batch inference verified; input schema validation enforced via BE-04; output bounds ($P \in [0, 1]$), raw log-odds, and strict determinism verified; zero decision thresholds baked in.
+- Local TreeSHAP explainability: exact local TreeSHAP attributions (2,381 features) and constant ensemble base values computed natively via LightGBM C++ TreeSHAP; mathematical additivity ($\sum \text{SHAP} + \text{base} = \text{margin}$) verified to tolerance $10^{-5}$; sequence protocol and batch explanations verified.
+- Scientific isolation & fail-closed security: unfreezed scientific config in `configs/model.scientific.yaml` safely fails closed (raises `ModelConfigUnresolvedError`) while OQ-02 is pending; demo adapter disallowed when `allow_demo=False`; zero unauthorized fallback to demo on scientific failure.
+- Automated tests: 30 targeted tests in `test_be05_lightgbm_shap_service.py`, 157 passed across full repo suite (5 skipped/deselected for unconfigured live DB).
 
 ## P0 scientific decisions
 
