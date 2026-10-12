@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
@@ -44,7 +45,16 @@ def classify_revision_status(current_rev: str | None, expected_rev: str) -> str:
         from alembic.config import Config
         from alembic.script import ScriptDirectory
 
-        cfg = Config("database/alembic.ini")
+        # Locate alembic.ini robustly regardless of current working directory
+        root = Path(__file__).resolve().parents[4]
+        candidate = root / "database" / "alembic.ini"
+        if candidate.exists():
+            cfg = Config(str(candidate))
+        elif Path("database/alembic.ini").resolve().exists():
+            cfg = Config(str(Path("database/alembic.ini").resolve()))
+        else:
+            cfg = Config("database/alembic.ini")
+
         script = ScriptDirectory.from_config(cfg)
 
         try:
@@ -52,25 +62,44 @@ def classify_revision_status(current_rev: str | None, expected_rev: str) -> str:
         except Exception:
             return "unknown"
 
+        def _get_downs(sc_rev) -> list[str]:
+            if not sc_rev or not sc_rev.down_revision:
+                return []
+            if isinstance(sc_rev.down_revision, tuple):
+                return [str(r) for r in sc_rev.down_revision]
+            return [str(sc_rev.down_revision)]
+
         # Walk downward from expected_rev to check if current_rev is behind
-        curr: str | None = expected_rev
-        while curr:
-            sc = script.get_revision(curr)
+        curr_queue: list[str] = [expected_rev]
+        visited: set[str] = set()
+        while curr_queue:
+            c = curr_queue.pop(0)
+            if c in visited:
+                continue
+            visited.add(c)
+            sc = script.get_revision(c)
             if not sc:
-                break
-            if sc.down_revision == current_rev:
+                continue
+            downs = _get_downs(sc)
+            if current_rev in downs:
                 return "behind"
-            curr = sc.down_revision
+            curr_queue.extend(downs)
 
         # Walk downward from current_rev to check if current_rev is ahead
-        curr = current_rev
-        while curr:
-            sc = script.get_revision(curr)
+        curr_queue = [current_rev]
+        visited = set()
+        while curr_queue:
+            c = curr_queue.pop(0)
+            if c in visited:
+                continue
+            visited.add(c)
+            sc = script.get_revision(c)
             if not sc:
-                break
-            if sc.down_revision == expected_rev:
+                continue
+            downs = _get_downs(sc)
+            if expected_rev in downs:
                 return "ahead"
-            curr = sc.down_revision
+            curr_queue.extend(downs)
 
         return "mismatch"
     except Exception:

@@ -441,3 +441,99 @@ def test_config_status_endpoint() -> None:
     assert data["jev_ai"]["advisory_only"] is True
     assert data["jev_ai"]["local_only"] is True
     assert data["jev_ai"]["endpoint_label"] == "lm_studio_local"
+
+
+def test_database_health_ahead_revision() -> None:
+    """When DB has a revision ahead of expected_db_revision, report ahead."""
+    eng = create_engine("sqlite:///:memory:")
+    with eng.connect() as conn:
+        conn.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)"))
+        conn.execute(
+            text("INSERT INTO alembic_version (version_num) VALUES ('0002_v3_jev_ai_audit')"),
+        )
+        conn.commit()
+
+    # Suppose application expected older 0001_v2_multiuser
+    with patch.object(settings, "expected_db_revision", "0001_v2_multiuser"):
+        health = database_health(engine_override=eng)
+        assert health.ok is False
+        assert health.reachable is True
+        assert health.status == "not_ready"
+        assert health.revision_status == "ahead"
+        assert health.current_revision == "0002_v3_jev_ai_audit"
+        assert health.expected_revision == "0001_v2_multiuser"
+        assert health.error is not None
+        assert "ahead of expected head" in health.error
+    eng.dispose()
+
+
+def test_classify_revision_status_works_from_subdirectories(monkeypatch) -> None:
+    """classify_revision_status must locate alembic.ini even if current working directory changes."""
+    from pathlib import Path
+    import os
+
+    backend_dir = Path(__file__).resolve().parents[1]
+    monkeypatch.chdir(backend_dir)
+    assert Path.cwd() == backend_dir
+
+    status = classify_revision_status("0001_v2_multiuser", "0002_v3_jev_ai_audit")
+    assert status == "behind"
+
+
+def test_ai_disabled_zero_socket_connections(monkeypatch) -> None:
+    """When Jev AI is disabled, querying /v1/ai/status must not invoke any outbound HTTP client."""
+    def forbidden_client(*args, **kwargs):
+        raise RuntimeError("Forbidden outbound HTTP client created when Jev AI is disabled!")
+
+    monkeypatch.setattr("x_sentinel.jev_ai.status.httpx.Client", forbidden_client)
+
+    with patch.object(settings, "jev_ai_enabled", False):
+        resp = client.get("/v1/ai/status")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "disabled"
+
+        ready_resp = client.get("/ready")
+        assert ready_resp.status_code in (200, 503)
+
+
+def test_get_db_session_lifecycle() -> None:
+    """get_db generator yields a valid session and closes it on exit."""
+    from x_sentinel.database.session import get_db
+
+    gen = get_db()
+    session = next(gen)
+    assert session is not None
+    assert session.is_active is True
+    # Complete generator
+    try:
+        next(gen)
+    except StopIteration:
+        pass
+
+
+def test_analyze_vector_validation_failure() -> None:
+    """POST /v1/analyze/vector with incorrect feature count returns 422 XS_INPUT_INVALID."""
+    bad_payload = {"features": [0.0] * 10, "request_id": "bad-len-test"}
+    resp = client.post("/v1/analyze/vector", json=bad_payload)
+    assert resp.status_code == 422
+    data = resp.json()
+    assert data["detail"]["code"] == "XS_INPUT_INVALID"
+
+
+def test_analyze_file_phase2_disabled() -> None:
+    """POST /v1/analyze/file returns 501 XS_FEATURE_DISABLED."""
+    resp = client.post("/v1/analyze/file")
+    assert resp.status_code == 501
+    data = resp.json()
+    assert data["detail"]["code"] == "XS_FEATURE_DISABLED"
+
+
+def test_repeated_status_calls_stability() -> None:
+    """Health and readiness endpoints must remain stable under repeated queries."""
+    for _ in range(25):
+        resp_health = client.get("/health")
+        assert resp_health.status_code == 200
+
+        resp_config = client.get("/v1/config/status")
+        assert resp_config.status_code == 200
+

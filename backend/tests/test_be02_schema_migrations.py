@@ -9,9 +9,11 @@ from sqlalchemy.orm import Session
 from x_sentinel.config import settings
 from x_sentinel.database.base import Base
 from x_sentinel.database.models import (
+    Alert,
     AnalysisJob,
     AnalysisResultRecord,
     DetectorScore,
+    ExperimentRun,
     JevAIFeedback,
     JevAIRun,
 )
@@ -487,3 +489,156 @@ def test_detector_truth_uncontaminated_by_jev_failure() -> None:
         session.commit()
 
     engine.dispose()
+
+
+def test_schema_drift_detector_catches_intentional_drift() -> None:
+    from pathlib import Path
+    import sys
+    ROOT = Path(__file__).resolve().parents[2]
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    import scripts.check_schema_drift as drift_mod
+
+    # 1. Missing table detection
+    saved_tables = drift_mod.EXPECTED_TABLES
+    try:
+        drift_mod.EXPECTED_TABLES = saved_tables | {"ghost_table"}
+        with pytest.raises(ValueError, match="Metadata tables mismatch"):
+            drift_mod.check_metadata_tables()
+    finally:
+        drift_mod.EXPECTED_TABLES = saved_tables
+
+    # 2. Forbidden keyword detection
+    saved_forbidden = drift_mod.FORBIDDEN_TABLE_KEYWORDS
+    try:
+        drift_mod.FORBIDDEN_TABLE_KEYWORDS = {"users"}
+        with pytest.raises(ValueError, match="Forbidden keyword 'users' found"):
+            drift_mod.check_metadata_tables()
+    finally:
+        drift_mod.FORBIDDEN_TABLE_KEYWORDS = saved_forbidden
+
+    # 3. Column mismatch detection
+    saved_cols = drift_mod.EXPECTED_TABLE_COLUMNS["users"]
+    try:
+        drift_mod.EXPECTED_TABLE_COLUMNS["users"] = saved_cols | {"ghost_column"}
+        with pytest.raises(ValueError, match="Table 'users' columns mismatch"):
+            drift_mod.check_metadata_tables()
+    finally:
+        drift_mod.EXPECTED_TABLE_COLUMNS["users"] = saved_cols
+
+    # 4. schema.sql missing table detection
+    fixture_dir = ROOT / "tests" / "fixtures"
+    fixture_dir.mkdir(parents=True, exist_ok=True)
+    dummy_sql = fixture_dir / "incomplete_schema.sql"
+    dummy_sql.write_text("CREATE TABLE users (id int);", encoding="utf-8")
+    try:
+        with pytest.raises(ValueError, match="schema.sql missing CREATE TABLE"):
+            drift_mod.check_schema_sql(dummy_sql)
+    finally:
+        if dummy_sql.exists():
+            dummy_sql.unlink()
+
+
+@pytest.mark.skipif(not db_available, reason="live DB not reachable")
+def test_analysis_job_check_constraints() -> None:
+    engine = create_engine(settings.database_url)
+    with Session(engine) as session:
+        # Invalid status
+        bad_status_job = AnalysisJob(
+            request_id=f"bad-status-{uuid.uuid4()}",
+            status="unauthorized_status",
+            input_mode="vector",
+            demo_mode=True,
+        )
+        session.add(bad_status_job)
+        with pytest.raises(IntegrityError):
+            session.commit()
+        session.rollback()
+
+        # Invalid input_mode
+        bad_mode_job = AnalysisJob(
+            request_id=f"bad-mode-{uuid.uuid4()}",
+            status="queued",
+            input_mode="binary_raw",
+            demo_mode=True,
+        )
+        session.add(bad_mode_job)
+        with pytest.raises(IntegrityError):
+            session.commit()
+        session.rollback()
+    engine.dispose()
+
+
+@pytest.mark.skipif(not db_available, reason="live DB not reachable")
+def test_analysis_result_and_detector_score_constraints() -> None:
+    engine = create_engine(settings.database_url)
+    req_id = f"valid-job-{uuid.uuid4()}"
+    with Session(engine) as session:
+        job = AnalysisJob(
+            request_id=req_id,
+            status="completed",
+            input_mode="vector",
+            demo_mode=True,
+        )
+        session.add(job)
+        session.commit()
+        job_id = job.id
+
+    try:
+        with Session(engine) as session:
+            bad_result = AnalysisResultRecord(
+                analysis_job_id=job_id,
+                decision="invalid_decision_verdict",
+            )
+            session.add(bad_result)
+            with pytest.raises(IntegrityError):
+                session.commit()
+            session.rollback()
+
+            bad_score = DetectorScore(
+                analysis_job_id=job_id,
+                detector_code="M99",
+                score=0.5,
+            )
+            session.add(bad_score)
+            with pytest.raises(IntegrityError):
+                session.commit()
+            session.rollback()
+    finally:
+        with Session(engine) as session:
+            job_to_del = session.get(AnalysisJob, job_id)
+            if job_to_del:
+                session.delete(job_to_del)
+                session.commit()
+        engine.dispose()
+
+
+@pytest.mark.skipif(not db_available, reason="live DB not reachable")
+def test_transaction_rollback_leaves_zero_residue() -> None:
+    engine = create_engine(settings.database_url)
+    good_req = f"rollback-test-good-{uuid.uuid4()}"
+    bad_req = f"rollback-test-bad-{uuid.uuid4()}"
+
+    with pytest.raises(IntegrityError):
+        with Session(engine) as session:
+            # Good record
+            session.add(AnalysisJob(
+                request_id=good_req,
+                status="queued",
+                input_mode="vector",
+            ))
+            session.flush()
+            # Bad record that causes IntegrityError
+            session.add(AnalysisJob(
+                request_id=bad_req,
+                status="forbidden_status",
+                input_mode="vector",
+            ))
+            session.commit()
+
+    # Verify that the good record was rolled back as part of the atomic transaction
+    with Session(engine) as session:
+        queried = session.query(AnalysisJob).filter_by(request_id=good_req).first()
+        assert queried is None, "Transaction rollback failed: partial write remained!"
+    engine.dispose()
+

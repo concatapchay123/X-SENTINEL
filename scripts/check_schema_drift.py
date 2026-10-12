@@ -66,6 +66,111 @@ JEV_FEEDBACK_EXPECTED_COLUMNS = {
 }
 
 
+EXPECTED_TABLE_COLUMNS: dict[str, set[str]] = {
+    "users": {
+        "id",
+        "email",
+        "normalized_email",
+        "display_name",
+        "is_active",
+        "created_at",
+        "updated_at",
+    },
+    "roles": {"id", "code", "description"},
+    "user_roles": {"user_id", "role_id", "assigned_at"},
+    "model_versions": {
+        "id",
+        "name",
+        "version",
+        "sha256",
+        "config_hash",
+        "metadata_json",
+        "is_active",
+        "created_at",
+    },
+    "analysis_jobs": {
+        "id",
+        "request_id",
+        "user_id",
+        "model_version_id",
+        "status",
+        "input_mode",
+        "input_sha256",
+        "input_artifact_uri",
+        "config_version",
+        "demo_mode",
+        "error_code",
+        "error_message",
+        "created_at",
+        "started_at",
+        "completed_at",
+    },
+    "analysis_results": {
+        "analysis_job_id",
+        "malware_score",
+        "suspicion_score",
+        "threshold",
+        "decision",
+        "latency_ms",
+        "view_contributions",
+        "result_json",
+        "evidence_uri",
+        "created_at",
+    },
+    "detector_scores": {
+        "analysis_job_id",
+        "detector_code",
+        "score",
+        "diagnostics",
+        "created_at",
+    },
+    "alerts": {
+        "id",
+        "analysis_job_id",
+        "severity",
+        "status",
+        "reason",
+        "created_at",
+        "resolved_at",
+    },
+    "artifacts": {
+        "id",
+        "analysis_job_id",
+        "kind",
+        "uri",
+        "sha256",
+        "content_type",
+        "size_bytes",
+        "metadata_json",
+        "created_at",
+    },
+    "audit_events": {
+        "id",
+        "request_id",
+        "user_id",
+        "event_type",
+        "entity_type",
+        "entity_id",
+        "payload",
+        "created_at",
+    },
+    "experiment_runs": {
+        "id",
+        "created_by_user_id",
+        "experiment_code",
+        "status",
+        "config_hash",
+        "seed",
+        "results_uri",
+        "metrics_json",
+        "created_at",
+        "completed_at",
+    },
+    "jev_ai_runs": JEV_RUNS_EXPECTED_COLUMNS,
+    "jev_ai_feedback": JEV_FEEDBACK_EXPECTED_COLUMNS,
+}
+
+
 def check_alembic_heads(alembic_ini_path: Path) -> str:
     cfg = Config(str(alembic_ini_path))
     script = ScriptDirectory.from_config(cfg)
@@ -89,17 +194,12 @@ def check_metadata_tables() -> None:
             if kw in table_name.lower():
                 raise ValueError(f"Forbidden keyword '{kw}' found in table '{table_name}'")
 
-    # Check jev_ai_runs columns
-    runs_cols = set(Base.metadata.tables["jev_ai_runs"].columns.keys())
-    if runs_cols != JEV_RUNS_EXPECTED_COLUMNS:
-        diff = runs_cols.symmetric_difference(JEV_RUNS_EXPECTED_COLUMNS)
-        raise ValueError(f"jev_ai_runs columns mismatch. Symmetric difference: {diff}")
-
-    # Check jev_ai_feedback columns
-    feedback_cols = set(Base.metadata.tables["jev_ai_feedback"].columns.keys())
-    if feedback_cols != JEV_FEEDBACK_EXPECTED_COLUMNS:
-        diff = feedback_cols.symmetric_difference(JEV_FEEDBACK_EXPECTED_COLUMNS)
-        raise ValueError(f"jev_ai_feedback columns mismatch. Symmetric difference: {diff}")
+    # Check all 13 canonical tables and their columns
+    for table_name, expected_cols in EXPECTED_TABLE_COLUMNS.items():
+        actual_cols = set(Base.metadata.tables[table_name].columns.keys())
+        if actual_cols != expected_cols:
+            diff = actual_cols.symmetric_difference(expected_cols)
+            raise ValueError(f"Table '{table_name}' columns mismatch. Symmetric difference: {diff}")
 
 
 def check_schema_sql(schema_sql_path: Path) -> None:

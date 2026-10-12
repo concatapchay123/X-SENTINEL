@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 import yaml
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -52,6 +53,97 @@ class Settings(BaseSettings):
     fpr_target: float = 0.01
     latency_p95_ms_target: float = 10.0
     circuit_breaker_ms: float = 8.0
+
+    @field_validator("backend_port", "frontend_port")
+    @classmethod
+    def validate_ports(cls, v: int) -> int:
+        if not (1 <= v <= 65535):
+            raise ValueError(f"Port must be between 1 and 65535; got {v}")
+        return v
+
+    @field_validator("input_mode")
+    @classmethod
+    def validate_input_mode(cls, v: str) -> str:
+        clean = v.strip().lower()
+        if clean not in {"vector", "raw_pe"}:
+            raise ValueError(f"input_mode must be 'vector' or 'raw_pe'; got '{v}'")
+        return clean
+
+    @field_validator("env")
+    @classmethod
+    def validate_env(cls, v: str) -> str:
+        clean = v.strip().lower()
+        if clean not in {"development", "test", "testing", "staging", "production"}:
+            raise ValueError(
+                f"env must be one of development, test, staging, production; got '{v}'"
+            )
+        return clean
+
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        clean = v.strip().upper()
+        if clean not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
+            raise ValueError(f"log_level must be a standard Python logging level; got '{v}'")
+        return clean
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        clean = v.strip()
+        if not clean:
+            raise ValueError("database_url must not be empty or whitespace")
+        return clean
+
+    @field_validator(
+        "db_pool_size",
+        "db_pool_recycle_seconds",
+        "max_upload_bytes",
+        "jev_ai_timeout_seconds",
+        "circuit_breaker_ms",
+        "latency_p95_ms_target",
+    )
+    @classmethod
+    def validate_positive_numbers(cls, v: float | int) -> float | int:
+        if v <= 0:
+            raise ValueError(f"Numeric parameter must be > 0; got {v}")
+        return v
+
+    @field_validator("db_max_overflow")
+    @classmethod
+    def validate_non_negative_int(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError(f"db_max_overflow must be >= 0; got {v}")
+        return v
+
+    @field_validator("jev_ai_temperature")
+    @classmethod
+    def validate_temperature(cls, v: float) -> float:
+        if not (0.0 <= v <= 2.0):
+            raise ValueError(f"jev_ai_temperature must be between 0.0 and 2.0; got {v}")
+        return v
+
+    @field_validator("jev_ai_max_context_chars")
+    @classmethod
+    def validate_max_context(cls, v: int) -> int:
+        if not (100 <= v <= 200_000):
+            raise ValueError(f"jev_ai_max_context_chars must be between 100 and 200,000; got {v}")
+        return v
+
+    @field_validator("research_asr_gate", "production_asr_target", "fpr_target")
+    @classmethod
+    def validate_ratios(cls, v: float) -> float:
+        if not (0.0 <= v <= 1.0):
+            raise ValueError(f"Ratio metric must be between 0.0 and 1.0; got {v}")
+        return v
+
+    @model_validator(mode="after")
+    def validate_jev_ai_local_endpoint(self) -> Settings:
+        if self.jev_ai_enabled and self.jev_ai_local_only:
+            from x_sentinel.jev_ai.guardrails import validate_local_endpoint
+
+            validate_local_endpoint(self.jev_ai_base_url)
+        return self
 
     def load_yaml_config(self, filename: str) -> dict[str, Any]:
         path = self.config_dir / filename

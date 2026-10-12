@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from x_sentinel.config import Settings, settings
 from x_sentinel.jev_ai.guardrails import (
@@ -182,3 +183,86 @@ def test_baseline_audit_and_validation_scripts() -> None:
     )
     assert res_val.returncode == 0, f"validate_v3_package failed: {res_val.stderr}"
     assert "PASS" in res_val.stdout
+
+
+def test_settings_rejects_invalid_ports() -> None:
+    for bad_port in [-1, 0, 65536, 99999]:
+        with pytest.raises(ValidationError):
+            Settings(backend_port=bad_port)
+        with pytest.raises(ValidationError):
+            Settings(frontend_port=bad_port)
+
+
+def test_settings_rejects_invalid_input_mode() -> None:
+    for bad_mode in ["malware", "invalid", "", "pe_binary"]:
+        with pytest.raises(ValidationError):
+            Settings(input_mode=bad_mode)
+
+
+def test_settings_rejects_invalid_environment() -> None:
+    for bad_env in ["local_custom", "invalid", "qa_sandbox"]:
+        with pytest.raises(ValidationError):
+            Settings(env=bad_env)
+
+
+def test_settings_rejects_invalid_log_level() -> None:
+    for bad_log in ["TRACE", "VERBOSE", "SUPER_CRITICAL", ""]:
+        with pytest.raises(ValidationError):
+            Settings(log_level=bad_log)
+
+
+def test_settings_rejects_empty_database_url() -> None:
+    for bad_url in ["", "   ", "\t\n"]:
+        with pytest.raises(ValidationError):
+            Settings(database_url=bad_url)
+
+
+def test_settings_rejects_invalid_numeric_parameters() -> None:
+    with pytest.raises(ValidationError):
+        Settings(db_pool_size=0)
+    with pytest.raises(ValidationError):
+        Settings(db_pool_size=-5)
+    with pytest.raises(ValidationError):
+        Settings(db_max_overflow=-1)
+    with pytest.raises(ValidationError):
+        Settings(db_pool_recycle_seconds=0)
+    with pytest.raises(ValidationError):
+        Settings(max_upload_bytes=0)
+    with pytest.raises(ValidationError):
+        Settings(jev_ai_timeout_seconds=0)
+    with pytest.raises(ValidationError):
+        Settings(circuit_breaker_ms=-1.0)
+    with pytest.raises(ValidationError):
+        Settings(latency_p95_ms_target=0)
+
+
+def test_settings_rejects_invalid_jev_ai_temperature() -> None:
+    for bad_temp in [-0.5, -0.01, 2.01, 5.0]:
+        with pytest.raises(ValidationError):
+            Settings(jev_ai_temperature=bad_temp)
+
+
+def test_settings_rejects_invalid_context_chars() -> None:
+    for bad_chars in [0, 50, 99, 200_001, 1_000_000]:
+        with pytest.raises(ValidationError):
+            Settings(jev_ai_max_context_chars=bad_chars)
+
+
+def test_settings_rejects_invalid_scientific_metrics() -> None:
+    for bad_ratio in [-0.1, 1.01, 2.0]:
+        with pytest.raises(ValidationError):
+            Settings(research_asr_gate=bad_ratio)
+        with pytest.raises(ValidationError):
+            Settings(production_asr_target=bad_ratio)
+        with pytest.raises(ValidationError):
+            Settings(fpr_target=bad_ratio)
+
+
+def test_settings_rejects_cloud_url_when_jev_enabled() -> None:
+    with pytest.raises(ValidationError):
+        Settings(
+            jev_ai_enabled=True,
+            jev_ai_local_only=True,
+            jev_ai_base_url="https://api.openai.com/v1",
+        )
+

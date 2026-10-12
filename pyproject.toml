@@ -48,7 +48,7 @@ testpaths = ["backend/tests", "tests"]
 addopts = "-ra"
 pythonpath = ["backend/src"]
 markers = [
-  "db: requires a live PostgreSQL database",
+  "db: requires a live Microsoft SQL Server database",
   "integration: integration test",
 ]
 
