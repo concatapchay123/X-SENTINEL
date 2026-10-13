@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-import json
+import hashlib
 from typing import Any
 
 from x_sentinel.jev_ai.guardrails import (
@@ -10,6 +10,7 @@ from x_sentinel.jev_ai.guardrails import (
     canonical_json_dumps,
     check_blind_data_in_text,
     check_forbidden_keys,
+    check_prompt_injection,
     compute_context_digest,
     redact_sensitive_data,
     redact_sensitive_text,
@@ -42,9 +43,7 @@ def project_canonical_evidence(evidence: Any, *, shap_top_k: int = 20) -> JevCon
     elif isinstance(evidence, dict):
         raw_dict = copy.deepcopy(evidence)
     else:
-        raise JevContextBlocked(
-            f"Unsupported evidence type: {type(evidence).__name__}"
-        )
+        raise JevContextBlocked(f"Unsupported evidence type: {type(evidence).__name__}")
 
     # Hard boundary check on source dictionary
     check_forbidden_keys(raw_dict)
@@ -66,9 +65,7 @@ def project_canonical_evidence(evidence: Any, *, shap_top_k: int = 20) -> JevCon
     detector_diagnostics = {}
     if isinstance(latency_dict, dict):
         detector_diagnostics["latency_ms"] = {
-            str(k): float(v)
-            for k, v in latency_dict.items()
-            if isinstance(v, (int, float))
+            str(k): float(v) for k, v in latency_dict.items() if isinstance(v, (int, float))
         }
 
     # Safe provenance hashes
@@ -172,10 +169,105 @@ def build_messages(
         f"Mode: {request.mode.value}\n"
         f"Canonical evidence JSON:\n{context_json}\n\n"
         f"Operator question: {safe_question}\n\n"
-        "Return a grounded advisory explanation. Clearly label uncertainties and recommended checks."
+        "Return a grounded advisory explanation. "
+        "Clearly label uncertainties and recommended checks."
     )
 
     return [
         {"role": "system", "content": SYSTEM_POLICY},
         {"role": "user", "content": user_content},
     ], digest
+
+
+# ---------------------------------------------------------------------------
+# Exact Jev Decision Prompt Builder (Jev-Style-Qwen3.5-2B-Decision Contract)
+# ---------------------------------------------------------------------------
+
+JEV_DECISION_INSTRUCTION = (
+    "You are a decision function. Read the state, "
+    "then answer the question by choosing exactly one option."
+)
+
+
+def build_decision_prompt(
+    state: str,
+    question: str,
+    options: list[Any],
+) -> str:
+    """Constructs exact Jev-style decision prompt adhering to model specification.
+
+    Canonical format:
+    You are a decision function. Read the state, then answer the question
+    by choosing exactly one option.
+
+    [State]
+    {state}
+
+    [Question]
+    {question}
+
+    [Options]
+    A. {option 1}
+    B. {option 2}
+
+    Answer:
+
+    Hard constraints:
+    1. Ends exactly with 'Answer:' without trailing space for 1-token decision.
+    2. Enforces prompt injection scans on state, question, and option labels.
+    3. Validates option count (2 to 26 options, letters A to Z).
+    """
+    if not isinstance(state, str) or not state.strip():
+        raise ValueError("Decision prompt 'state' must not be empty or whitespace")
+    if not isinstance(question, str) or not question.strip():
+        raise ValueError("Decision prompt 'question' must not be empty or whitespace")
+    if not isinstance(options, list) or len(options) < 2 or len(options) > 26:
+        opt_len = len(options) if isinstance(options, list) else type(options)
+        raise ValueError(f"Options must contain between 2 and 26 elements; got {opt_len}")
+
+    # Prompt injection defensive scanning
+    check_prompt_injection(state)
+    check_prompt_injection(question)
+
+    lines: list[str] = [
+        JEV_DECISION_INSTRUCTION,
+        "",
+        "[State]",
+        state.strip(),
+        "",
+        "[Question]",
+        question.strip(),
+        "",
+        "[Options]",
+    ]
+
+    for i, opt in enumerate(options):
+        letter = chr(ord("A") + i)
+        label = (
+            opt.label
+            if hasattr(opt, "label")
+            else (opt["label"] if isinstance(opt, dict) else str(opt))
+        )
+        clean_label = str(label).strip()
+        if not clean_label:
+            raise ValueError(f"Option {letter} label must not be empty")
+        check_prompt_injection(clean_label)
+        lines.append(f"{letter}. {clean_label}")
+
+    lines.append("")
+    lines.append("Answer:")
+    return "\n".join(lines)
+
+
+def build_decision_messages(
+    state: str,
+    question: str,
+    options: list[Any],
+) -> tuple[list[dict[str, str]], str]:
+    """Builds OpenAI-compatible message payload and SHA-256 prompt digest for a Jev decision.
+
+    Guarantees independent, single-turn request formatting without accumulated chat history.
+    """
+    prompt_str = build_decision_prompt(state, question, options)
+    digest = hashlib.sha256(prompt_str.encode("utf-8")).hexdigest()
+    return [{"role": "user", "content": prompt_str}], digest

@@ -9,7 +9,7 @@ from x_sentinel.jev_ai.schemas import JevStatus, JevStatusResponse
 
 def get_jev_status(client: httpx.Client | None = None) -> JevStatusResponse:
     """Evaluate and report independent Jev AI integration status.
-    
+
     Hard boundaries:
     1. If Jev AI is disabled, zero network calls are performed.
     2. Jev AI availability is strictly non-blocking for detector/backend readiness.
@@ -59,9 +59,7 @@ def get_jev_status(client: httpx.Client | None = None) -> JevStatusResponse:
             models_list: list[str] = []
             if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
                 models_list = [
-                    str(m["id"])
-                    for m in data["data"]
-                    if isinstance(m, dict) and "id" in m
+                    str(m["id"]) for m in data["data"] if isinstance(m, dict) and "id" in m
                 ]
 
             is_degraded = bool(

@@ -10,7 +10,6 @@ import httpx
 
 from x_sentinel.jev_ai.guardrails import (
     ALLOWED_LOCAL_HOSTS,
-    JevContextBlocked,
     validate_local_endpoint,
 )
 from x_sentinel.jev_ai.schemas import JevResponse
@@ -20,22 +19,26 @@ logger = logging.getLogger("x_sentinel.jev_ai.client")
 
 class JevAIError(RuntimeError):
     """Base exception for all Jev AI runtime client errors."""
+
     pass
 
 
 class JevAIUnavailable(JevAIError):
     """Raised when Jev AI LM Studio runtime is unavailable, disabled, or failed.
     Maintains backward compatibility with callers catching JevAIUnavailable."""
+
     pass
 
 
 class JevAIDisabledError(JevAIUnavailable):
     """Raised when Jev AI is disabled and an inference or network request is attempted."""
+
     pass
 
 
 class JevAIConfigurationError(JevAIError):
     """Raised when runtime client configuration is invalid."""
+
     pass
 
 
@@ -56,6 +59,7 @@ class JevAITimeout(JevAIUnavailable):
 
 class JevAIConnectionError(JevAIUnavailable):
     """Raised when network connection to LM Studio fails (refused, unreachable, disconnect)."""
+
     pass
 
 
@@ -76,12 +80,13 @@ class JevAIHTTPError(JevAIUnavailable):
 
 class JevAIResponseError(JevAIUnavailable):
     """Raised when LM Studio returns an invalid or malformed response structure."""
+
     pass
 
 
 class JevAIClient:
     """Local OpenAI-compatible HTTP client for LM Studio runtime inference.
-    
+
     Adheres to strict X-SENTINEL architectural constraints:
     1. Pure headless REST communication;
     2. Disabled mode guarantees exactly zero outbound network calls;
@@ -135,9 +140,7 @@ class JevAIClient:
 
         # Validate timeout
         if timeout_seconds <= 0:
-            raise JevAIConfigurationError(
-                f"timeout_seconds must be > 0; got {timeout_seconds}"
-            )
+            raise JevAIConfigurationError(f"timeout_seconds must be > 0; got {timeout_seconds}")
 
         # Validate temperature
         if not (0.0 <= temperature <= 2.0):
@@ -147,9 +150,7 @@ class JevAIClient:
 
         # Validate max_output_tokens if given
         if max_output_tokens is not None and max_output_tokens <= 0:
-            raise JevAIConfigurationError(
-                f"max_output_tokens must be > 0; got {max_output_tokens}"
-            )
+            raise JevAIConfigurationError(f"max_output_tokens must be > 0; got {max_output_tokens}")
 
         self.base_url = base_url.rstrip("/")
         self.model_id = model_id.strip()
@@ -208,17 +209,21 @@ class JevAIClient:
         *,
         temperature: float | None = None,
         max_output_tokens: int | None = None,
+        logprobs: bool = False,
+        top_logprobs: int | None = None,
     ) -> JevResponse:
         """Execute OpenAI-compatible chat completion request against LM Studio runtime.
-        
+
         Args:
             messages: List of message objects with 'role' and 'content' keys.
             temperature: Optional per-request temperature override.
             max_output_tokens: Optional per-request token ceiling override.
-            
+            logprobs: Whether to request token log probabilities.
+            top_logprobs: Number of most likely tokens to return logprobs for.
+
         Returns:
             JevResponse: Validated advisory analysis result with latency and metadata.
-            
+
         Raises:
             JevAIDisabledError: When runtime client is disabled (zero network calls).
             JevAITimeout: On connection, read, or request timeout.
@@ -241,6 +246,10 @@ class JevAIClient:
         tokens = self.max_output_tokens if max_output_tokens is None else max_output_tokens
         if tokens is not None:
             payload["max_tokens"] = tokens
+        if logprobs:
+            payload["logprobs"] = True
+            if top_logprobs is not None:
+                payload["top_logprobs"] = top_logprobs
 
         headers: dict[str, str] = {
             "Content-Type": "application/json",
@@ -284,7 +293,8 @@ class JevAIClient:
         except httpx.ConnectError as exc:
             logger.warning("LM Studio connection refused at %s: %s", self.base_url, exc)
             raise JevAIConnectionError(
-                f"Failed to connect to LM Studio at {self.base_url} (connection refused or runtime not listening)"
+                f"Failed to connect to LM Studio at {self.base_url} "
+                "(connection refused or runtime not listening)"
             ) from exc
         except (httpx.NetworkError, httpx.RemoteProtocolError, httpx.TransportError) as exc:
             logger.warning("LM Studio transport failure at %s: %s", self.base_url, exc)
@@ -336,6 +346,10 @@ class JevAIClient:
         returned_model = str(data.get("model")) if data.get("model") else self.model_id
         latency_ms = (time.perf_counter() - started) * 1000.0
 
+        logprobs_data = first_choice.get("logprobs")
+        if not isinstance(logprobs_data, dict):
+            logprobs_data = None
+
         return JevResponse(
             text=text,
             model_id=returned_model,
@@ -343,11 +357,12 @@ class JevAIClient:
             advisory_only=True,
             latency_ms=latency_ms,
             raw=data if self.store_raw else None,
+            logprobs=logprobs_data,
         )
 
     def probe_models(self) -> list[str]:
         """Probe LM Studio /models endpoint to discover loaded models.
-        
+
         Returns:
             list[str]: Model identifiers reported by LM Studio.
             Returns empty list if disabled or if probe fails.
@@ -365,11 +380,7 @@ class JevAIClient:
             if resp.status_code == 200:
                 data = resp.json()
                 if isinstance(data, dict) and "data" in data and isinstance(data["data"], list):
-                    return [
-                        str(m["id"])
-                        for m in data["data"]
-                        if isinstance(m, dict) and "id" in m
-                    ]
+                    return [str(m["id"]) for m in data["data"] if isinstance(m, dict) and "id" in m]
         except Exception as exc:
             logger.debug("LM Studio models probe failed: %s", exc)
             return []
@@ -377,7 +388,7 @@ class JevAIClient:
 
     def check_availability(self) -> bool:
         """Check whether LM Studio is reachable and configured model is loaded.
-        
+
         Guarantees zero network calls when disabled.
         """
         if not self.enabled:
@@ -410,6 +421,7 @@ class JevAIClient:
         """Factory method constructing JevAIClient from application Settings."""
         if settings_obj is None:
             from x_sentinel.config import settings as app_settings
+
             settings_obj = app_settings
 
         yaml_config: dict[str, Any] = {}
