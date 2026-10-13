@@ -565,7 +565,15 @@ class TestWorkflows:
     def test_explain_workflow_deterministic_and_advisory(self) -> None:
         mock_client = MagicMock(spec=JevAIClient)
         mock_client.enabled = True
-        mock_client.chat.return_value = _mock_runtime_response(token=" A")
+        mock_client.chat.return_value = _mock_runtime_response(
+            token=" A",
+            top_logprobs=[
+                {"token": " A", "logprob": -0.10},
+                {"token": " B", "logprob": -2.50},
+                {"token": " C", "logprob": -3.50},
+                {"token": " D", "logprob": -4.50},
+            ],
+        )
 
         orchestrator = JevAIOrchestrator(mock_client)
         ev = _sample_evidence()
@@ -574,6 +582,8 @@ class TestWorkflows:
 
         assert isinstance(result, ExplainResult)
         assert result.advisory_only is True
+        assert result.advisory_decision is not None
+        assert result.advisory_decision.selected_letter == "A"
         assert "ALERT" in result.summary.upper()
         assert len(result.key_factors) > 0
         assert len(result.recommended_checks) > 0

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import time
 from typing import Any
 from urllib.parse import urlparse
@@ -10,6 +11,7 @@ import httpx
 
 from x_sentinel.jev_ai.guardrails import (
     ALLOWED_LOCAL_HOSTS,
+    redact_sensitive_text,
     validate_local_endpoint,
 )
 from x_sentinel.jev_ai.schemas import JevResponse
@@ -84,6 +86,32 @@ class JevAIResponseError(JevAIUnavailable):
     pass
 
 
+def _validate_positive_finite(name: str, val: Any) -> float:
+    if (
+        isinstance(val, bool)
+        or not isinstance(val, (int, float))
+        or math.isnan(val)
+        or math.isinf(val)
+        or val <= 0
+    ):
+        raise JevAIConfigurationError(f"{name} must be a finite number > 0; got {val!r}")
+    return float(val)
+
+
+def _validate_temperature(val: Any) -> float:
+    if (
+        isinstance(val, bool)
+        or not isinstance(val, (int, float))
+        or math.isnan(val)
+        or math.isinf(val)
+        or not (0.0 <= float(val) <= 2.0)
+    ):
+        raise JevAIConfigurationError(
+            f"temperature must be a finite number between 0.0 and 2.0; got {val!r}"
+        )
+    return float(val)
+
+
 class JevAIClient:
     """Local OpenAI-compatible HTTP client for LM Studio runtime inference.
 
@@ -108,6 +136,7 @@ class JevAIClient:
         pool_timeout: float | None = None,
         temperature: float = 0.1,
         max_output_tokens: int | None = 1200,
+        max_retries: int = 0,
         prompt_version: str = "jev-v3.0.0",
         local_only: bool = True,
         allowed_hosts: set[str] | list[str] | None = None,
@@ -116,11 +145,11 @@ class JevAIClient:
         http_client: httpx.Client | None = None,
     ) -> None:
         # Validate model_id
-        if not model_id or not model_id.strip():
+        if not isinstance(model_id, str) or not model_id.strip():
             raise JevAIConfigurationError("model_id must not be empty or whitespace")
 
         # Validate base_url
-        if not base_url or not base_url.strip():
+        if not isinstance(base_url, str) or not base_url.strip():
             raise JevAIConfigurationError("base_url must not be empty or whitespace")
 
         parsed = urlparse(base_url.strip())
@@ -138,30 +167,59 @@ class JevAIClient:
             )
             validate_local_endpoint(base_url, allowed_hosts=allowed_hosts_set)
 
-        # Validate timeout
-        if timeout_seconds <= 0:
-            raise JevAIConfigurationError(f"timeout_seconds must be > 0; got {timeout_seconds}")
+        # Validate timeouts
+        valid_timeout = _validate_positive_finite("timeout_seconds", timeout_seconds)
+        valid_connect = (
+            _validate_positive_finite("connect_timeout", connect_timeout)
+            if connect_timeout is not None
+            else None
+        )
+        valid_read = (
+            _validate_positive_finite("read_timeout", read_timeout)
+            if read_timeout is not None
+            else None
+        )
+        valid_write = (
+            _validate_positive_finite("write_timeout", write_timeout)
+            if write_timeout is not None
+            else None
+        )
+        valid_pool = (
+            _validate_positive_finite("pool_timeout", pool_timeout)
+            if pool_timeout is not None
+            else None
+        )
 
         # Validate temperature
-        if not (0.0 <= temperature <= 2.0):
-            raise JevAIConfigurationError(
-                f"temperature must be between 0.0 and 2.0; got {temperature}"
-            )
+        valid_temp = _validate_temperature(temperature)
 
         # Validate max_output_tokens if given
-        if max_output_tokens is not None and max_output_tokens <= 0:
-            raise JevAIConfigurationError(f"max_output_tokens must be > 0; got {max_output_tokens}")
+        if max_output_tokens is not None:
+            if (
+                isinstance(max_output_tokens, bool)
+                or not isinstance(max_output_tokens, int)
+                or max_output_tokens <= 0
+            ):
+                raise JevAIConfigurationError(
+                    f"max_output_tokens must be an integer > 0; got {max_output_tokens!r}"
+                )
+
+        if isinstance(max_retries, bool) or not isinstance(max_retries, int) or max_retries < 0:
+            raise JevAIConfigurationError(
+                f"max_retries must be a non-negative integer; got {max_retries!r}"
+            )
 
         self.base_url = base_url.rstrip("/")
         self.model_id = model_id.strip()
-        self.enabled = enabled
-        self.timeout_seconds = float(timeout_seconds)
-        self.connect_timeout = float(connect_timeout) if connect_timeout is not None else None
-        self.read_timeout = float(read_timeout) if read_timeout is not None else None
-        self.write_timeout = float(write_timeout) if write_timeout is not None else None
-        self.pool_timeout = float(pool_timeout) if pool_timeout is not None else None
-        self.temperature = float(temperature)
+        self.enabled = bool(enabled)
+        self.timeout_seconds = valid_timeout
+        self.connect_timeout = valid_connect
+        self.read_timeout = valid_read
+        self.write_timeout = valid_write
+        self.pool_timeout = valid_pool
+        self.temperature = valid_temp
         self.max_output_tokens = max_output_tokens
+        self.max_retries = max_retries
         self.prompt_version = prompt_version
         self.local_only = local_only
         self.allowed_hosts = allowed_hosts
@@ -235,12 +293,37 @@ class JevAIClient:
         if not self.enabled:
             raise JevAIDisabledError("Jev AI runtime client is disabled (XS_JEV_AI_ENABLED=false)")
 
+        if not isinstance(messages, list) or len(messages) == 0:
+            raise ValueError("messages must be a non-empty list of role/content dictionaries")
+        for msg in messages:
+            if (
+                not isinstance(msg, dict)
+                or not isinstance(msg.get("role"), str)
+                or not isinstance(msg.get("content"), str)
+            ):
+                raise ValueError("Each message must be a dict with string 'role' and 'content'")
+
+        eff_temp = self.temperature if temperature is None else _validate_temperature(temperature)
+        if max_output_tokens is not None and (
+            isinstance(max_output_tokens, bool)
+            or not isinstance(max_output_tokens, int)
+            or max_output_tokens <= 0
+        ):
+            raise ValueError(
+                f"max_output_tokens must be a positive integer; got {max_output_tokens!r}"
+            )
+
+        if top_logprobs is not None and (
+            isinstance(top_logprobs, bool) or not isinstance(top_logprobs, int) or top_logprobs <= 0
+        ):
+            raise ValueError(f"top_logprobs must be a positive integer; got {top_logprobs!r}")
+
         started = time.perf_counter()
 
         payload: dict[str, Any] = {
             "model": self.model_id,
             "messages": messages,
-            "temperature": self.temperature if temperature is None else temperature,
+            "temperature": eff_temp,
             "stream": False,
         }
         tokens = self.max_output_tokens if max_output_tokens is None else max_output_tokens
@@ -303,7 +386,8 @@ class JevAIClient:
             ) from exc
         except httpx.HTTPStatusError as exc:
             status_code = exc.response.status_code if exc.response is not None else None
-            resp_text = exc.response.text[:200] if exc.response is not None else ""
+            raw_resp_text = exc.response.text[:200] if exc.response is not None else ""
+            resp_text = redact_sensitive_text(raw_resp_text)
             logger.warning("LM Studio returned HTTP %s: %s", status_code, resp_text)
             raise JevAIHTTPError(
                 f"LM Studio returned HTTP {status_code}: {resp_text}",
@@ -339,11 +423,22 @@ class JevAIClient:
             raise JevAIResponseError("LM Studio choices[0] missing 'message' dictionary")
 
         content = message.get("content")
-        if content is None:
-            raise JevAIResponseError("LM Studio choices[0].message missing 'content' field")
+        if not isinstance(content, str):
+            raise JevAIResponseError(
+                "LM Studio choices[0].message missing valid string 'content' field"
+            )
 
-        text = str(content)
-        returned_model = str(data.get("model")) if data.get("model") else self.model_id
+        text = content
+        returned_model = str(data.get("model")).strip() if data.get("model") else self.model_id
+        if (
+            self.model_id != "jev-local-TBD"
+            and data.get("model") is not None
+            and returned_model != self.model_id
+        ):
+            raise JevAIResponseError(
+                f"Runtime model mismatch: requested '{self.model_id}', "
+                f"runtime returned '{returned_model}'"
+            )
         latency_ms = (time.perf_counter() - started) * 1000.0
 
         logprobs_data = first_choice.get("logprobs")

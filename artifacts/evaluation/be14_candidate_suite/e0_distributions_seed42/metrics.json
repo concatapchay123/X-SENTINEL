@@ -1,0 +1,86 @@
+{
+  "experiment": "E0",
+  "groups": {
+    "clean_model_benign": {
+      "count": 25,
+      "exceedance_count_at_threshold": 25,
+      "exceedance_rate_at_threshold": 1.0,
+      "max": 0.6578933165793326,
+      "mean": 0.5906611463637077,
+      "min": 0.5111070913705426,
+      "q50": 0.5991272188216822,
+      "q90": 0.6447902449918217,
+      "q95": 0.6551696271322913,
+      "q99": 0.6577030076860652,
+      "status": "PRESENT",
+      "std": 0.04524957647741093
+    },
+    "clean_model_triggered": {
+      "count": 75,
+      "exceedance_count_at_threshold": 72,
+      "exceedance_rate_at_threshold": 0.96,
+      "max": 0.6761511244960621,
+      "mean": 0.5851348505617641,
+      "min": 0.46141947911829523,
+      "q50": 0.5955348420316761,
+      "q90": 0.6450982246810258,
+      "q95": 0.6633266586607053,
+      "q99": 0.6760923155615683,
+      "status": "PRESENT",
+      "std": 0.06117951279481803
+    },
+    "poisoned_model_benign": {
+      "count": 0,
+      "status": "MISSING"
+    },
+    "poisoned_model_triggered": {
+      "count": 0,
+      "status": "MISSING"
+    }
+  },
+  "locked_threshold": 0.46885473178149056,
+  "m1_tadr_groups": {
+    "clean_model_benign": {
+      "count": 25,
+      "exceedance_count_at_threshold": 0,
+      "exceedance_rate_at_threshold": 0.0,
+      "max": 0.15525173029675676,
+      "mean": 0.08672760979459772,
+      "min": 0.03434382488568655,
+      "q50": 0.08925233243923773,
+      "q90": 0.1195472099817504,
+      "q95": 0.12496887164375654,
+      "q99": 0.14811702318364897,
+      "status": "PRESENT",
+      "std": 0.02855141230711703
+    },
+    "clean_model_triggered": {
+      "count": 75,
+      "exceedance_count_at_threshold": 0,
+      "exceedance_rate_at_threshold": 0.0,
+      "max": 0.15655072241639004,
+      "mean": 0.09205933174339108,
+      "min": 0.03457669295063856,
+      "q50": 0.09415517624475683,
+      "q90": 0.15529581554854008,
+      "q95": 0.15584088031112558,
+      "q99": 0.156239674879355,
+      "status": "PRESENT",
+      "std": 0.040160653182364885
+    },
+    "poisoned_model_benign": {
+      "count": 0,
+      "status": "MISSING"
+    },
+    "poisoned_model_triggered": {
+      "count": 0,
+      "status": "MISSING"
+    }
+  },
+  "m1_threshold": 0.46885473178149056,
+  "missing_groups": [
+    "poisoned_model_benign",
+    "poisoned_model_triggered"
+  ],
+  "status": "PARTIAL"
+}

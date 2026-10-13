@@ -1,25 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
 import uuid
+from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from x_sentinel.audit.evidence import (
-    CanonicalEvidence,
-    EvidenceIntegrityError,
-    ScientificEvidenceRejectedError,
-)
+from x_sentinel.audit.evidence import CanonicalEvidence
 from x_sentinel.audit.writer import AuditWriteFailureError, AuditWriter
-from x_sentinel.database.models import (
-    AnalysisJob,
-    AnalysisResultRecord,
-    Artifact,
-    AuditEvent,
-    DetectorScore,
-)
-from x_sentinel.database.repositories.evidence import CanonicalEvidenceRepository
 
 
 class AuditEvidenceManager:
@@ -38,6 +25,7 @@ class AuditEvidenceManager:
         audit_writer: AuditWriter | None = None,
         audit_path: Path | str | None = None,
     ):
+        self.writer: AuditWriter | None
         if audit_writer is not None:
             self.writer = audit_writer
         elif audit_path is not None:
@@ -87,6 +75,8 @@ class AuditEvidenceManager:
 
         # Step 1: Database persistence if session is provided
         if session is not None:
+            from x_sentinel.database.repositories.evidence import CanonicalEvidenceRepository
+
             repo = CanonicalEvidenceRepository(session)
             try:
                 job, result, scores, artifact, audit_event = repo.persist(
@@ -98,11 +88,12 @@ class AuditEvidenceManager:
                 )
                 job_id = job.id
             except Exception as exc:
-                # CanonicalEvidenceRepository already guarantees rollback and raises AuditWriteFailureError
+                # CanonicalEvidenceRepository guarantees rollback and raises AuditWriteFailureError
                 if isinstance(exc, AuditWriteFailureError):
                     raise
                 raise AuditWriteFailureError(
-                    f"Relational evidence persistence failed for request {evidence.request_id}: {exc}"
+                    f"Relational evidence persistence failed for request "
+                    f"{evidence.request_id}: {exc}"
                 ) from exc
 
         # Step 2: File-based audit trail persistence if requested
@@ -122,6 +113,8 @@ class AuditEvidenceManager:
         session: Session,
     ) -> bool:
         """Verifies the integrity of evidence stored in the database."""
+        from x_sentinel.database.repositories.evidence import CanonicalEvidenceRepository
+
         repo = CanonicalEvidenceRepository(session)
         evidence = repo.get_canonical_evidence(request_id)
         if evidence is None:

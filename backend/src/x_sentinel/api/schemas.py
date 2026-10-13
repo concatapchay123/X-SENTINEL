@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class VectorAnalysisRequest(BaseModel):
@@ -199,3 +199,162 @@ class ErrorDetail(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: ErrorDetail = Field(..., description="Structured error payload")
+
+
+class JevExplainRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    analysis_id: str = Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        description="Target analysis job UUID or request_id",
+    )
+    mode: str = Field(
+        default="explain",
+        min_length=1,
+        max_length=32,
+        description="Jev AI workflow mode: explain, triage, compare, report, or docs",
+    )
+    compare_with_analysis_id: str | None = Field(
+        default=None,
+        max_length=128,
+        description="Second analysis job UUID or request_id required when mode is 'compare'",
+    )
+    focus_signals: list[Literal["m1", "m2", "m3", "m4", "m5"]] | None = Field(
+        default=None,
+        max_length=5,
+        description="Optional subset of detector signals (m1 through m5) to highlight",
+    )
+    question: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Optional analyst question for the explain workflow",
+    )
+
+
+class JevAIRunResponse(BaseModel):
+    id: str = Field(..., description="Unique Jev AI run UUID")
+    analysis_job_id: str | None = Field(
+        default=None, description="Associated canonical analysis job UUID"
+    )
+    requested_by_user_id: str | None = Field(
+        default=None, description="UUID of the authenticated user who initiated the run"
+    )
+    mode: Literal["explain", "triage", "compare", "report", "docs"] = Field(
+        ..., description="Executed Jev AI workflow mode"
+    )
+    status: Literal["queued", "running", "completed", "failed", "blocked"] = Field(
+        ..., description="Run lifecycle status"
+    )
+    advisory_only: Literal[True] = Field(
+        default=True,
+        description="Mandatory invariant: Jev AI outputs are strictly advisory",
+    )
+    authoritative_decision_unchanged: Literal[True] = Field(
+        default=True,
+        description="Confirms canonical detector verdict and evidence were not modified",
+    )
+    model_id: str = Field(..., description="LM Studio model identifier")
+    endpoint_label: str = Field(..., description="Sanitized local runtime endpoint label")
+    prompt_version: str = Field(..., description="Prompt contract version")
+    input_digest_sha256: str = Field(
+        ..., description="64-character lowercase hex SHA-256 digest of safe input context"
+    )
+    output_digest_sha256: str | None = Field(
+        default=None,
+        description="64-character lowercase hex SHA-256 digest of advisory output",
+    )
+    context_summary: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Sanitized allowlisted context summary",
+    )
+    response_text: str | None = Field(
+        default=None,
+        description=(
+            "Persisted advisory summary text (omitted if retention policy disables text storage)"
+        ),
+    )
+    decision_result: dict[str, Any] | None = Field(
+        default=None,
+        description="Structured workflow decision output",
+    )
+    latency_ms: float | None = Field(
+        default=None, description="Inference execution latency in milliseconds"
+    )
+    error_code: str | None = Field(
+        default=None, description="Canonical error code if run failed/blocked"
+    )
+    error_message: str | None = Field(
+        default=None, description="Sanitized error description if run failed/blocked"
+    )
+    created_at: str = Field(..., description="ISO 8601 UTC creation timestamp")
+    completed_at: str | None = Field(default=None, description="ISO 8601 UTC completion timestamp")
+
+
+class JevAIRunListResponse(BaseModel):
+    items: list[JevAIRunResponse] = Field(
+        default_factory=list, description="List of persisted Jev AI runs"
+    )
+    total: int = Field(..., description="Total count of matching Jev AI runs")
+    limit: int = Field(..., description="Query page limit")
+    offset: int = Field(..., description="Query page offset")
+
+
+class JevFeedbackRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    rating: int | None = Field(
+        default=None,
+        description="Optional integer usefulness rating from 1 (lowest) to 5 (highest)",
+    )
+    label: Literal["helpful", "not_helpful", "incorrect", "unsafe", "unclear"] | None = Field(
+        default=None,
+        description="Optional structured classification label",
+    )
+    comment: str | None = Field(
+        default=None,
+        max_length=2000,
+        description="Optional analyst feedback comment (max 2,000 characters)",
+    )
+
+    @field_validator("rating", mode="before")
+    @classmethod
+    def validate_strict_integer_rating(cls, v: Any) -> int | None:
+        if v is None:
+            return None
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise ValueError(
+                "rating must be a strict integer between 1 and 5 (booleans and strings rejected)"
+            )
+        if not (1 <= v <= 5):
+            raise ValueError(f"rating must be between 1 and 5; got {v}")
+        return v
+
+
+class JevFeedbackResponse(BaseModel):
+    id: str = Field(..., description="Unique feedback UUID")
+    jev_ai_run_id: str = Field(..., description="Associated Jev AI run UUID")
+    user_id: str | None = Field(
+        default=None, description="UUID of the analyst who submitted feedback"
+    )
+    rating: int | None = Field(default=None, description="Integer rating in [1, 5]")
+    label: Literal["helpful", "not_helpful", "incorrect", "unsafe", "unclear"] | None = Field(
+        default=None, description="Structured classification label"
+    )
+    comment: str | None = Field(default=None, description="Sanitized analyst comment")
+    advisory_only: Literal[True] = Field(
+        default=True,
+        description=(
+            "Confirms feedback is advisory telemetry only and never alters detector verdicts"
+        ),
+    )
+    created_at: str = Field(..., description="ISO 8601 UTC creation timestamp")
+
+
+class JevFeedbackListResponse(BaseModel):
+    jev_ai_run_id: str = Field(..., description="Target Jev AI run UUID")
+    total: int = Field(..., description="Total feedback records for this run")
+    items: list[JevFeedbackResponse] = Field(
+        default_factory=list, description="Ordered list of feedback items"
+    )

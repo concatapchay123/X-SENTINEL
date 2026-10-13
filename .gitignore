@@ -12,6 +12,8 @@ artifacts/*
 !artifacts/.gitkeep
 !artifacts/calibration/
 !artifacts/calibration/*
+!artifacts/evaluation/
+!artifacts/evaluation/**
 models/*
 !models/README.md
 data/private/*

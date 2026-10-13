@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -18,6 +19,25 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-Request-ID", "Authorization"],
 )
 app.include_router(router)
+
+
+@app.exception_handler(RequestValidationError)
+def handle_request_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+    path = request.url.path
+    code = "XS_FEEDBACK_INVALID" if path.endswith("/feedback") else "XS_INPUT_INVALID"
+    first_msg = "Request payload validation failed"
+    errors = exc.errors()
+    if errors and isinstance(errors[0], dict):
+        first_msg = str(errors[0].get("msg", first_msg))
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": {
+                "code": code,
+                "message": first_msg,
+            }
+        },
+    )
 
 
 @app.get("/health", tags=["System"])

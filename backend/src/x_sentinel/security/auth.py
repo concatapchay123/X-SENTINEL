@@ -1,13 +1,18 @@
+# ruff: noqa: B008
 from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from x_sentinel.config import settings
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 
 class Role(StrEnum):
@@ -54,6 +59,17 @@ PREDEFINED_TOKENS: dict[str, AuthUser] = {
         email="operator@xsentinel.local",
         roles=(Role.OPERATOR.value,),
     ),
+    "token-analyst-2": AuthUser(
+        user_id=uuid.UUID("55555555-5555-5555-5555-555555555555"),
+        email="analyst2@xsentinel.local",
+        roles=(Role.ANALYST.value, Role.OPERATOR.value),
+    ),
+    "token-inactive": AuthUser(
+        user_id=uuid.UUID("66666666-6666-6666-6666-666666666666"),
+        email="inactive@xsentinel.local",
+        roles=(Role.ADMIN.value, Role.ANALYST.value),
+        is_active=False,
+    ),
 }
 
 # Default unauthenticated identity when auth is disabled
@@ -75,6 +91,7 @@ def get_current_user_optional(
     When auth is enabled:
       - If credentials are missing, returns None (optional auth).
       - If credentials are valid, returns the corresponding AuthUser.
+      - If user is inactive, raises HTTP 403 XS_FORBIDDEN.
       - If credentials are invalid, raises HTTP 401 XS_INVALID_CREDENTIALS.
     """
     if settings.api_auth_mode == "none":
@@ -85,7 +102,16 @@ def get_current_user_optional(
 
     token = credentials.credentials.strip()
     if token in PREDEFINED_TOKENS:
-        return PREDEFINED_TOKENS[token]
+        user = PREDEFINED_TOKENS[token]
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "XS_FORBIDDEN",
+                    "message": "Authenticated user account is inactive",
+                },
+            )
+        return user
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -106,6 +132,7 @@ def get_current_user(
     When settings.api_auth_mode != 'none', requires valid credentials:
       - Missing credentials -> 401 XS_UNAUTHENTICATED
       - Invalid credentials -> 401 XS_INVALID_CREDENTIALS
+      - Inactive account -> 403 XS_FORBIDDEN
     """
     if settings.api_auth_mode == "none":
         return ANONYMOUS_USER
@@ -119,7 +146,16 @@ def get_current_user(
 
     token = credentials.credentials.strip()
     if token in PREDEFINED_TOKENS:
-        return PREDEFINED_TOKENS[token]
+        user = PREDEFINED_TOKENS[token]
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "XS_FORBIDDEN",
+                    "message": "Authenticated user account is inactive",
+                },
+            )
+        return user
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -138,10 +174,18 @@ def require_roles(*allowed_roles: str):
         if settings.api_auth_mode == "none":
             return user
 
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "XS_FORBIDDEN",
+                    "message": "Authenticated user account is inactive",
+                },
+            )
+
         if not user.has_role(*allowed_roles):
             msg = (
-                f"Action requires one of roles: {list(allowed_roles)}; "
-                f"user has {list(user.roles)}"
+                f"Action requires one of roles: {list(allowed_roles)}; user has {list(user.roles)}"
             )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -153,3 +197,31 @@ def require_roles(*allowed_roles: str):
         return user
 
     return role_checker
+
+
+def ensure_persisted_user(session: Session, user: AuthUser | None) -> uuid.UUID | None:
+    """Ensures an authenticated non-anonymous user exists in the users table
+    and returns their UUID.
+    """
+    if user is None or settings.api_auth_mode == "none" or user.user_id == ANONYMOUS_USER.user_id:
+        return None
+
+    from x_sentinel.database.models import User
+
+    existing = session.get(User, user.user_id)
+    if existing is None:
+        primary_role = (
+            Role.ADMIN.value
+            if Role.ADMIN.value in user.roles
+            else (user.roles[0] if user.roles else Role.ANALYST.value)
+        )
+        new_user = User(
+            id=user.user_id,
+            email=user.email,
+            normalized_email=user.email.strip().lower(),
+            display_name=primary_role,
+            is_active=user.is_active,
+        )
+        session.add(new_user)
+        session.flush()
+    return user.user_id

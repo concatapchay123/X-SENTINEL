@@ -115,12 +115,21 @@
 - Authorization: Server-side authorization verified under `api_auth_mode == "none"` (open dev access) and `api_auth_mode == "bearer"` (enforced token validation). Rejects missing credentials (401 `XS_UNAUTHENTICATED`), invalid tokens (401 `XS_INVALID_CREDENTIALS`), and role violations (403 `XS_FORBIDDEN` for operators accessing evidence or modifying alerts, and evaluators submitting analysis). Blocks client-side header forging.
 - Automated tests: 34 targeted tests across 4 test suites (`test_be09_openapi_contract.py` (7), `test_be09_authorization.py` (7), `test_be09_core_api.py` (18), `test_be09_integration.py` (2)); 417 passed across full repo test suite with zero regressions.
 
+## BE-14 Milestone Verification
+
+- Threat Model & Protocol Freeze (`evaluation/protocol.py`): Frozen clean-label vector-space threat model (`THREAT_MODEL_SPEC`), RQ1–RQ4 / H1–H4 matrix (`RQ_HYPOTHESIS_MATRIX`, with M5 strictly defined as Semantic Plausibility over 8 physical PE invariants per `FR-010`), trigger families (`T-concentrated`, `T-spread`, `T-cross`), and zero-leakage dataset split & clean-label poisoning budget governance (`DatasetSplitManifest`, `AttackManifest`, `audit_dataset_splits`, `verify_clean_label_integrity`) implemented and verified.
+- Scientific Metrics (`evaluation/metrics.py`): Exact empirical AUROC (`compute_auroc`), benign-only FPR (`compute_fpr`), Recall & Locked Recall@FPR1% (`compute_recall`, `compute_recall_at_locked_fpr` matching BE-07 `D1Calibration` conservative rank selection `n_cal - floor(target_fpr * n_cal)`), Pre-Defense ASR, Clean-Trigger Control, Post-Defense ASR (`compute_asr`), and Scoped Latency (`compute_latency_summary`) implemented with strict fail-closed validation.
+- Statistical Rigor (`evaluation/statistics.py`): Wilson 95% confidence interval (`wilson_ci`), sample-ID paired record alignment (`align_paired_records`), McNemar exact binomial / continuity-corrected $\chi^2$ test (`mcnemar_paired_test`), paired & cluster-paired bootstrap (`paired_bootstrap_test`), correlated DeLong & cluster-aware DeLong / bootstrap AUROC comparison (`paired_auroc_comparison`), and Holm-Bonferroni correction (`holm_bonferroni_correction`) implemented.
+- Blind Evaluation Protocol (`evaluation/blind.py`): 3-role custody separation (`ATTACK_CONSTRUCTION`, `DEFENSE_DETECTOR`, `EVALUATION_SCORING`), `BlindCustodyGuard` blocking manifest/ground-truth path, payload (`label`, `labels`, `is_malware`, `y_true`, `blind_label`, etc.), and env-var leakage, SHA-256 sealed `BlindPredictionPackage`, 3-state `DecisionPolicy` integration, and `PostHocTuningForbiddenError` enforced.
+- Frozen Candidate E0–E5 Suite & Blocker Honesty (`evaluation/runner.py`, `artifacts/evaluation/be14_candidate_suite/`): Executed E0–E5 candidate suite on real EMBER2018 2,381-dim test vectors ($N=25$ benign, $N=25$ malware $\times 3$ trigger families = $100$ pooled records) and `ember_model_2018.txt`; persisted raw predictions, metrics (including E0 M1/TADR & Fusion distributions, E4 cluster-paired ablation over $25$ base malware clusters, and E5 3-iteration warmup latency), manifests, and SHA-256 checksums; verified SHA-256 integrity (`verify_run_artifacts`) and universal independent recomputation (`recompute_metrics_from_raw`) across E0–E5. Strict scientific freeze mode fails closed (`ExperimentBlockedError`) while `OQ-01`, `OQ-02`, and `MISSING_POISONED_MODELS` remain open.
+- Automated tests: 36 targeted tests in `test_be14_threat_simulation_e0_e5_statistics.py`, 100% passing.
+
 ## P0 scientific decisions
 
 1. M4 exact canonical formula/normalization: FROZEN (Symmetric Cross-View Disagreement per ADR-005; ablations retained).
 2. Fusion/calibration protocol: FROZEN (Canonical `weighted_sum` + D1 empirical quantile calibration at $\text{FPR} \le 1\%$ with Wilson 95% CI; BE-07 scope completed).
-3. Scientific LightGBM model identity/config.
-4. Authoritative view mapping indices.
+3. Scientific LightGBM model identity/config: BLOCKED (`OQ-02` in `configs/model.scientific.yaml` + `MISSING_POISONED_MODELS` in `models/`; Candidate `configs/model.ember2018.yaml` verified).
+4. Authoritative view mapping indices: BLOCKED (`OQ-01` in `configs/views.scientific.yaml`; Candidate `configs/views.demo.yaml` verified).
 
 ## P0 Jev AI integration decisions before enabling in accepted environment
 
@@ -131,3 +140,4 @@
 5. Evaluation set for hallucination/grounding/usefulness.
 
 These do not block detector implementation because Jev AI is optional.
+

@@ -29,6 +29,11 @@ def test_openapi_registered_endpoints() -> None:
         "/ready": ["get"],
         "/v1/config/status": ["get"],
         "/v1/ai/status": ["get"],
+        "/v1/ai/explain": ["post"],
+        "/v1/ai/runs": ["get"],
+        "/v1/ai/runs/{run_id}": ["get"],
+        "/v1/ai/runs/{run_id}/feedback": ["post", "get"],
+        "/v1/ai/docs/ask": ["post"],
         "/v1/analyze/vector": ["post"],
         "/v1/analyze/file": ["post"],
         "/v1/analysis": ["get"],
@@ -60,6 +65,13 @@ def test_openapi_components_schemas_present() -> None:
         "AlertStatusUpdateRequest",
         "CanonicalEvidenceResponse",
         "DetectorScoreItem",
+        "JevStatusResponse",
+        "JevExplainRequest",
+        "JevAIRunResponse",
+        "JevAIRunListResponse",
+        "JevFeedbackRequest",
+        "JevFeedbackResponse",
+        "JevFeedbackListResponse",
     ]
 
     for model_name in expected_schemas:

@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import copy
 import hashlib
-from typing import Any
+import math
+from typing import Any, TypeGuard
 
 from x_sentinel.jev_ai.guardrails import (
+    ALLOWED_PROVENANCE_KEYS,
+    ALLOWED_TOP_SHAP_KEYS,
     JevContextBlocked,
+    JevPromptInjectionBlocked,
+    _scan_nested_strings,
+    _validate_json_primitives,
     apply_allowlist,
     canonical_json_dumps,
+    check_authority_claims,
     check_blind_data_in_text,
     check_forbidden_keys,
     check_prompt_injection,
@@ -26,20 +33,31 @@ Do not claim access to hidden ground truth, trigger manifests, raw PE execution,
 """
 
 
+def _is_finite_num(val: Any) -> TypeGuard[int | float]:
+    return (
+        not isinstance(val, bool)
+        and isinstance(val, (int, float))
+        and not math.isnan(val)
+        and not math.isinf(val)
+    )
+
+
 def project_canonical_evidence(evidence: Any, *, shap_top_k: int = 20) -> JevContext:
-    """Projects BE-08 CanonicalEvidence or raw evidence dict into a safe JevContext model.
+    """Projects CanonicalEvidence, JevContext, or raw evidence dict into a safe JevContext.
 
     Enforces:
     1. Input immutability (input object is never mutated);
     2. Strict exclusion of raw binaries, full feature vectors, secrets, and blind evaluation data;
-    3. Safe mapping of canonical decision, scores, M1-M5 signals, latency, and provenance hashes.
+    3. Safe mapping of canonical decision, scores, M1-M5 signals, view contributions, top-k SHAP,
+       warnings, latency diagnostics, and provenance hashes.
     """
     if evidence is None:
         raise JevContextBlocked("Evidence object cannot be None")
 
-    # If it is a CanonicalEvidence dataclass or similar object with attributes
-    if hasattr(evidence, "to_canonical_dict"):
-        raw_dict = evidence.to_canonical_dict()
+    if isinstance(evidence, JevContext):
+        raw_dict = copy.deepcopy(evidence.model_dump(mode="json"))
+    elif hasattr(evidence, "to_canonical_dict"):
+        raw_dict = copy.deepcopy(evidence.to_canonical_dict())
     elif isinstance(evidence, dict):
         raw_dict = copy.deepcopy(evidence)
     else:
@@ -48,59 +66,107 @@ def project_canonical_evidence(evidence: Any, *, shap_top_k: int = 20) -> JevCon
     # Hard boundary check on source dictionary
     check_forbidden_keys(raw_dict)
 
-    # Extract scientific fields
-    request_id = str(raw_dict.get("request_id", "")).strip() or None
-    decision = str(raw_dict.get("decision", "")).strip() or None
-    malware_score = raw_dict.get("malware_score")
-    fusion_score = raw_dict.get("fusion_score")
+    analysis_id = str(raw_dict.get("analysis_id") or "").strip() or None
+    request_id = str(raw_dict.get("request_id") or "").strip() or None
+    decision = str(raw_dict.get("decision") or "").strip() or None
 
-    signals_dict = raw_dict.get("signals", {})
-    detector_scores = {}
+    for text_field in (analysis_id, request_id, decision):
+        if text_field:
+            _scan_nested_strings(text_field)
+
+    malware_score = raw_dict.get("malware_score")
+    suspicion_raw = (
+        raw_dict.get("suspicion_score")
+        if raw_dict.get("suspicion_score") is not None
+        else raw_dict.get("fusion_score")
+    )
+    threshold_raw = raw_dict.get("threshold")
+
+    signals_dict = raw_dict.get("signals") or raw_dict.get("detector_scores") or {}
+    detector_scores: dict[str, float] = {}
     if isinstance(signals_dict, dict):
+        check_forbidden_keys(signals_dict)
+        _scan_nested_strings(signals_dict)
         for k, v in signals_dict.items():
-            if isinstance(v, (int, float)):
+            if _is_finite_num(v):
                 detector_scores[str(k).upper()] = float(v)
 
-    latency_dict = raw_dict.get("latency_ms", {})
-    detector_diagnostics = {}
+    detector_diagnostics: dict[str, Any] = {}
+    raw_diag = raw_dict.get("detector_diagnostics")
+    if isinstance(raw_diag, dict):
+        check_forbidden_keys(raw_diag)
+        _validate_json_primitives(raw_diag)
+        _scan_nested_strings(raw_diag)
+        detector_diagnostics.update(redact_sensitive_data(copy.deepcopy(raw_diag)))
+
+    latency_dict = raw_dict.get("latency_ms")
     if isinstance(latency_dict, dict):
+        check_forbidden_keys(latency_dict)
+        _scan_nested_strings(latency_dict)
         detector_diagnostics["latency_ms"] = {
-            str(k): float(v) for k, v in latency_dict.items() if isinstance(v, (int, float))
+            str(k): float(v) for k, v in latency_dict.items() if _is_finite_num(v)
         }
 
-    # Safe provenance hashes
-    provenance = {}
-    for prov_key in (
-        "build_digest",
-        "code_commit",
-        "timestamp",
-        "view_map_hash",
-        "model_hash",
-        "model_config_hash",
-        "detector_config_hash",
-        "threshold_id",
-    ):
+    view_contributions: dict[str, float] = {}
+    raw_views = raw_dict.get("view_contributions")
+    if isinstance(raw_views, dict):
+        check_forbidden_keys(raw_views)
+        _scan_nested_strings(raw_views)
+        for k, v in raw_views.items():
+            if _is_finite_num(v):
+                view_contributions[str(k)] = float(v)
+
+    top_shap: list[dict[str, Any]] = []
+    raw_shap = raw_dict.get("top_shap")
+    if isinstance(raw_shap, list) and shap_top_k > 0:
+        for item in raw_shap[:shap_top_k]:
+            if isinstance(item, dict):
+                check_forbidden_keys(item)
+                _scan_nested_strings(item)
+                clean_item = {k: v for k, v in item.items() if k in ALLOWED_TOP_SHAP_KEYS}
+                _validate_json_primitives(clean_item)
+                if clean_item:
+                    top_shap.append(clean_item)
+
+    warnings: list[str] = []
+    raw_warnings = raw_dict.get("warnings")
+    if isinstance(raw_warnings, list):
+        for w in raw_warnings:
+            if w is not None:
+                w_str = str(w)
+                _scan_nested_strings(w_str)
+                warnings.append(redact_sensitive_text(w_str))
+
+    # Safe provenance hashes (support both top-level and nested 'provenance' dict)
+    provenance: dict[str, str] = {}
+    nested_prov = raw_dict.get("provenance")
+    if isinstance(nested_prov, dict):
+        check_forbidden_keys(nested_prov)
+        _scan_nested_strings(nested_prov)
+        for pk, pv in nested_prov.items():
+            if pk in ALLOWED_PROVENANCE_KEYS and pv is not None:
+                pv_str = str(pv)
+                provenance[pk] = pv_str
+
+    for prov_key in ALLOWED_PROVENANCE_KEYS:
         if prov_key in raw_dict and raw_dict[prov_key] is not None:
-            provenance[prov_key] = str(raw_dict[prov_key])
+            pv_str = str(raw_dict[prov_key])
+            _scan_nested_strings(pv_str)
+            provenance[prov_key] = pv_str
 
-    if "seed" in raw_dict and raw_dict["seed"] is not None:
-        provenance["seed"] = str(raw_dict["seed"])
-    if "demo_mode" in raw_dict and raw_dict["demo_mode"] is not None:
-        provenance["demo_mode"] = str(raw_dict["demo_mode"])
-
-    # Build typed JevContext
     return JevContext(
+        analysis_id=analysis_id,
         request_id=request_id,
         decision=decision,
-        malware_score=float(malware_score) if isinstance(malware_score, (int, float)) else None,
-        suspicion_score=float(fusion_score) if isinstance(fusion_score, (int, float)) else None,
-        threshold=None,
+        malware_score=float(malware_score) if _is_finite_num(malware_score) else None,
+        suspicion_score=float(suspicion_raw) if _is_finite_num(suspicion_raw) else None,
+        threshold=float(threshold_raw) if _is_finite_num(threshold_raw) else None,
         detector_scores=detector_scores,
         detector_diagnostics=detector_diagnostics,
-        view_contributions={},
-        top_shap=[],
+        view_contributions=view_contributions,
+        top_shap=top_shap,
         provenance=provenance,
-        warnings=[],
+        warnings=warnings,
     )
 
 
@@ -124,7 +190,7 @@ def build_safe_context(
     # 1. Scrutinize all keys (denylist + blind data detection)
     check_forbidden_keys(raw_payload)
 
-    # 2. Authoritative allowlist projection (default-deny)
+    # 2. Authoritative allowlist projection (default-deny + string scanning)
     projected = apply_allowlist(raw_payload, strict=False)
 
     # 3. Deterministic redaction of sensitive credentials and paths
@@ -155,9 +221,10 @@ def build_messages(
     Returns:
         tuple[list[dict[str, str]], str]: (messages_list, digest_hex)
     """
-    # Defensive scan on question for blind evaluation data injection
     if request.question:
         check_blind_data_in_text(request.question)
+        check_prompt_injection(request.question)
+        check_authority_claims(request.question)
         safe_question = redact_sensitive_text(request.question)
     else:
         safe_question = "Explain the evidence and recommended human checks."
@@ -214,8 +281,8 @@ def build_decision_prompt(
 
     Hard constraints:
     1. Ends exactly with 'Answer:' without trailing space for 1-token decision.
-    2. Enforces prompt injection scans on state, question, and option labels.
-    3. Validates option count (2 to 26 options, letters A to Z).
+    2. Enforces prompt injection, blind data, and authority scans on inputs and option labels.
+    3. Validates option count (2 to 26 options, letters A to Z) and single-line option labels.
     """
     if not isinstance(state, str) or not state.strip():
         raise ValueError("Decision prompt 'state' must not be empty or whitespace")
@@ -225,18 +292,23 @@ def build_decision_prompt(
         opt_len = len(options) if isinstance(options, list) else type(options)
         raise ValueError(f"Options must contain between 2 and 26 elements; got {opt_len}")
 
-    # Prompt injection defensive scanning
+    # Defensive scanning on state and question
+    check_blind_data_in_text(state)
     check_prompt_injection(state)
+    check_authority_claims(state)
+
+    check_blind_data_in_text(question)
     check_prompt_injection(question)
+    check_authority_claims(question)
 
     lines: list[str] = [
         JEV_DECISION_INSTRUCTION,
         "",
         "[State]",
-        state.strip(),
+        redact_sensitive_text(state.strip()),
         "",
         "[Question]",
-        question.strip(),
+        redact_sensitive_text(question.strip()),
         "",
         "[Options]",
     ]
@@ -248,11 +320,18 @@ def build_decision_prompt(
             if hasattr(opt, "label")
             else (opt["label"] if isinstance(opt, dict) else str(opt))
         )
-        clean_label = str(label).strip()
+        raw_label_str = str(label)
+        if "\n" in raw_label_str or "\r" in raw_label_str:
+            raise JevPromptInjectionBlocked(
+                f"Option {letter} label must not contain newline characters"
+            )
+        clean_label = raw_label_str.strip()
         if not clean_label:
             raise ValueError(f"Option {letter} label must not be empty")
+        check_blind_data_in_text(clean_label)
         check_prompt_injection(clean_label)
-        lines.append(f"{letter}. {clean_label}")
+        check_authority_claims(clean_label)
+        lines.append(f"{letter}. {redact_sensitive_text(clean_label)}")
 
     lines.append("")
     lines.append("Answer:")
