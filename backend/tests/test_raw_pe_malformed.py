@@ -10,12 +10,8 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-import pytest
 
-from tests.fixtures.synthetic_pe import (
-    build_malformed_pe_variants,
-    build_minimal_valid_pe,
-)
+import pytest
 from x_sentinel.data.raw_pe import (
     FeatureGatedError,
     FileTooLargeError,
@@ -27,6 +23,11 @@ from x_sentinel.data.raw_pe import (
     read_bounded_bytes,
     validate_input_path,
     validate_pe_structure,
+)
+
+from tests.fixtures.synthetic_pe import (
+    build_malformed_pe_variants,
+    build_minimal_valid_pe,
 )
 
 

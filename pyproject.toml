@@ -63,6 +63,7 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "database/migrations/env.py" = ["E402"]
+"scripts/*" = ["E402"]
 "scripts/check_schema_drift.py" = ["E402"]
 "scripts/run_be17_benchmarks.py" = ["E402"]
 "scripts/migration_gate.py" = ["E402"]

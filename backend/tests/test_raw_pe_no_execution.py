@@ -11,19 +11,19 @@ import ast
 import math
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-import pytest
+from unittest.mock import patch
 
-from tests.fixtures.synthetic_pe import (
-    build_malformed_pe_variants,
-    build_minimal_valid_pe,
-)
+import pytest
 from x_sentinel.data.raw_pe import (
     MalformedPEError,
     RawPEFeatureExtractor,
     extract_static_pe,
 )
 
+from tests.fixtures.synthetic_pe import (
+    build_malformed_pe_variants,
+    build_minimal_valid_pe,
+)
 
 # ---------------------------------------------------------------------------
 # 1. Static AST Analysis of raw_pe.py (Forbidden Primitives Audit)
@@ -124,7 +124,8 @@ def execution_denial_guard():
     if hasattr(os, "startfile"):
         mocks["os_startfile"] = patch("os.startfile", side_effect=AssertionError("EXECUTION FORBIDDEN: os.startfile"))
 
-    started = [m.start() for m in mocks.values()]
+    for m in mocks.values():
+        m.start()
     try:
         yield mocks
     finally:

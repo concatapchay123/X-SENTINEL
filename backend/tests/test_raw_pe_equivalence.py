@@ -11,10 +11,9 @@ from __future__ import annotations
 import json
 import math
 from pathlib import Path
+
 import numpy as np
 import pytest
-
-from tests.fixtures.synthetic_pe import build_minimal_valid_pe
 from x_sentinel.data.raw_pe import (
     DATA_DIRECTORY_NAMES,
     RawPEFeatureExtractor,
@@ -32,6 +31,7 @@ from x_sentinel.data.raw_pe import (
 from x_sentinel.data.schema import FEATURE_COUNT, validate_vector
 from x_sentinel.data.views import load_view_map
 
+from tests.fixtures.synthetic_pe import build_minimal_valid_pe
 
 # ---------------------------------------------------------------------------
 # 1. Canonical 2,381-Dimension Schema & Group Breakdown
@@ -141,7 +141,7 @@ def test_repeated_extraction_is_deterministic() -> None:
     vec2 = extractor.extract_bytes(pe_bytes)
 
     assert len(vec1) == len(vec2) == 2381
-    max_diff = max(abs(a - b) for a, b in zip(vec1, vec2))
+    max_diff = max(abs(a - b) for a, b in zip(vec1, vec2, strict=True))
     assert max_diff == 0.0, "Repeated extractions must be bit-exact identical"
 
 
@@ -182,7 +182,7 @@ def test_reference_ember_vectorization_matches_test_dataset() -> None:
 
     import ember
 
-    with open(features_jsonl, "r", encoding="utf-8") as f:
+    with open(features_jsonl, encoding="utf-8") as f:
         first_record = json.loads(f.readline())
 
     extractor = ember.PEFeatureExtractor(2, print_feature_warning=False)
@@ -279,7 +279,7 @@ def test_exact_string_extractor_equivalence_to_ember() -> None:
     cand_vec = extract_strings(test_payload)
 
     assert len(ref_vec) == len(cand_vec) == 104
-    max_diff = max(abs(a - b) for a, b in zip(ref_vec, cand_vec))
+    max_diff = max(abs(a - b) for a, b in zip(ref_vec, cand_vec, strict=True))
     assert max_diff == 0.0, f"extract_strings diverges from EMBER2018 reference: max_diff={max_diff}"
 
 
@@ -292,7 +292,7 @@ def test_null_binary_feature_hasher_scalar_semantics() -> None:
     cand_hdr_vec = extract_header_info(b"", None)
 
     assert len(ref_hdr_vec) == len(cand_hdr_vec) == 62
-    max_hdr_diff = max(abs(a - b) for a, b in zip(ref_hdr_vec, cand_hdr_vec))
+    max_hdr_diff = max(abs(a - b) for a, b in zip(ref_hdr_vec, cand_hdr_vec, strict=True))
     assert max_hdr_diff == 0.0, f"extract_header_info (None) diff={max_hdr_diff}"
 
     ref_sec = ember.features.SectionInfo()
@@ -300,7 +300,7 @@ def test_null_binary_feature_hasher_scalar_semantics() -> None:
     cand_sec_vec = extract_section_info(b"", None)
 
     assert len(ref_sec_vec) == len(cand_sec_vec) == 255
-    max_sec_diff = max(abs(a - b) for a, b in zip(ref_sec_vec, cand_sec_vec))
+    max_sec_diff = max(abs(a - b) for a, b in zip(ref_sec_vec, cand_sec_vec, strict=True))
     assert max_sec_diff == 0.0, f"extract_section_info (None) diff={max_sec_diff}"
 
 
@@ -315,7 +315,7 @@ def test_multi_record_dataset_group_equivalence() -> None:
 
     extractor = ember.PEFeatureExtractor(2, print_feature_warning=False)
 
-    with open(features_jsonl, "r", encoding="utf-8") as f:
+    with open(features_jsonl, encoding="utf-8") as f:
         for idx in range(10):
             line = f.readline()
             if not line:
@@ -369,7 +369,7 @@ def test_multi_record_dataset_group_equivalence() -> None:
                 FeatureHasher(50, input_type="string").transform([[rec["section"]["entry"]]]).toarray()[0],
                 FeatureHasher(50, input_type="string").transform([entry_chars]).toarray()[0],
             ]).astype(np.float32)
-            libs = list(set([l.lower() for l in rec["imports"].keys()]))
+            libs = list(set([lib_name.lower() for lib_name in rec["imports"].keys()]))
             imps = [lib.lower() + ":" + e for lib, elist in rec["imports"].items() for e in elist]
             c_imp = np.hstack([
                 FeatureHasher(256, input_type="string").transform([libs]).toarray()[0],

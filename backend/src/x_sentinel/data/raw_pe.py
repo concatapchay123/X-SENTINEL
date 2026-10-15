@@ -8,18 +8,15 @@ until the TC-03 / Extractor Equivalence Gate is formally approved.
 
 from __future__ import annotations
 
-import math
-import os
-from pathlib import Path
 import re
 import struct
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 from sklearn.feature_extraction import FeatureHasher
 
 from .schema import FEATURE_COUNT, validate_vector
-
 
 # ---------------------------------------------------------------------------
 # Typed Exceptions
@@ -323,7 +320,7 @@ def extract_strings(data: bytes) -> list[float]:
     else:
         avlength = 0.0
         c = np.zeros(96, dtype=np.int64)
-        csum = 0
+        csum = np.int64(0)
         h = 0.0
 
     hist_divisor = float(csum) if csum > 0 else 1.0

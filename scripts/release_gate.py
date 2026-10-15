@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -35,10 +36,17 @@ logger = logging.getLogger("release_gate")
 def run_command_check(cmd: list[str], desc: str) -> tuple[bool, str]:
     """Runs a command and records success/failure output."""
     logger.info("Executing gate check: %s...", desc)
+    env = os.environ.copy()
+    env["OPENBLAS_NUM_THREADS"] = "1"
+    b_src = str(PROJECT_ROOT / "backend" / "src")
+    p_root = str(PROJECT_ROOT)
+    curr_p = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{b_src};{p_root};{curr_p}" if curr_p else f"{b_src};{p_root}"
     try:
         res = subprocess.run(
             cmd,
             cwd=str(PROJECT_ROOT),
+            env=env,
             capture_output=True,
             text=True,
             check=False,
