@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+
 import pytest
 from x_sentinel.detection.config import M4Config
 from x_sentinel.detection.m4_cross_view import (

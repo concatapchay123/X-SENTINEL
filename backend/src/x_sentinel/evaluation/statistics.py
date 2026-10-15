@@ -476,8 +476,8 @@ def paired_auroc_comparison(
         if cluster_ids is not None:
             pos_indices = np.flatnonzero(pos_mask)
             neg_indices = np.flatnonzero(neg_mask)
-            pos_clusters = [str(cluster_ids[i]) for i in pos_indices]
-            neg_clusters = [str(cluster_ids[i]) for i in neg_indices]
+            pos_clusters = [str(cluster_ids[int(i)]) for i in pos_indices]
+            neg_clusters = [str(cluster_ids[int(i)]) for i in neg_indices]
             unique_pos_c = list(dict.fromkeys(pos_clusters))
             unique_neg_c = list(dict.fromkeys(neg_clusters))
             if len(unique_pos_c) >= 2 and len(unique_pos_c) < m:

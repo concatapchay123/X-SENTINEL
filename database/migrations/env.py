@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from logging.config import fileConfig
 import os
-from pathlib import Path
 import sys
+from logging.config import fileConfig
+from pathlib import Path
 
 backend_src = Path(__file__).resolve().parents[2] / "backend" / "src"
 if str(backend_src) not in sys.path:
@@ -11,9 +11,8 @@ if str(backend_src) not in sys.path:
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
-
-from x_sentinel.database.base import Base
 from x_sentinel.database import models  # noqa: F401
+from x_sentinel.database.base import Base
 
 config = context.config
 if config.config_file_name is not None:

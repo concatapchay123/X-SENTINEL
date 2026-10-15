@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from x_sentinel.data.schema import validate_vector
 from x_sentinel.data.views import ViewMap, load_view_map
@@ -32,10 +33,11 @@ class DetectorPipeline:
 
         self.model_service = model_service
 
+        self.view_map: ViewMap | None = None
         if view_map is not None:
             self.view_map = view_map
         elif view_map_path is not None:
-            self.view_map = load_view_map(view_map_path, allow_demo=True)
+            self.view_map = load_view_map(Path(view_map_path), allow_demo=True)
         else:
             demo_view_path = Path("configs/views.demo.yaml")
             if demo_view_path.exists():

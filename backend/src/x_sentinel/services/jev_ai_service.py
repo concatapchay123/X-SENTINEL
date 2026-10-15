@@ -339,150 +339,212 @@ class JevAIService:
                 run_id=blocked_run_id,
             )
 
-        # 4. Phase 1 Transaction: Persist 'running' JevAIRun and COMMIT before external HTTP call
-        run_uuid = uuid.uuid4()
-        run_repo.create_run(
-            run_id=run_uuid,
-            mode=clean_mode,
-            status="running",
-            model_id=model_id,
-            prompt_version=prompt_version,
-            input_digest_sha256=initial_digest,
-            context_summary=initial_summary,
-            analysis_job_id=job_uuid,
-            requested_by_user_id=persisted_user_id,
+        # 4. Acquire Jev concurrency budget & initialize timing instrumentation
+        from infrastructure.monitoring.concurrency import (
+            ConcurrencyLimitExceededError,
+            get_jev_limiter,
         )
-        evidence_primary_copy = copy.deepcopy(evidence_primary)
-        evidence_candidate_copy = (
-            copy.deepcopy(evidence_candidate) if evidence_candidate is not None else None
-        )
-        session.commit()
-        # Note: Immediately after session.commit(), no database transaction is open while
-        # waiting on the external LM Studio HTTP call below.
+        from infrastructure.monitoring.metrics import get_metrics_registry
+        from infrastructure.monitoring.timer import TimingCollector
 
-        # 5. Phase 2: External LM Studio Orchestration (Zero Open DB Transactions)
+        jev_limiter = get_jev_limiter()
         try:
-            if question is not None and question.strip():
-                stripped_q = question.strip()
-                check_blind_data_in_text(stripped_q)
-                check_prompt_injection(stripped_q)
-                check_authority_claims(stripped_q)
-                if _SUPPLEMENTAL_OVERRIDE_RE.search(stripped_q):
-                    raise JevContextBlocked(
-                        "Authority or detector verdict override claim detected in question"
-                    )
+            limiter_ctx = jev_limiter.acquire()
+        except ConcurrencyLimitExceededError as exc:
+            raise JevAIServiceError(
+                status_code=503,
+                code="XS_AI_OVERLOADED",
+                message=str(exc),
+                run_id=None,
+            ) from exc
 
-            if clean_mode == "explain":
-                workflow_result: ExplainResult | TriageResult | CompareResult | ReportResult = (
-                    orchestrator.explain(evidence_primary_copy, question=question)
-                )
-            elif clean_mode == "triage":
-                workflow_result = orchestrator.triage(evidence_primary_copy)
-            elif clean_mode == "compare":
-                workflow_result = orchestrator.compare(
-                    evidence_primary_copy, evidence_candidate_copy
-                )
-            else:
-                workflow_result = orchestrator.report(evidence_primary_copy)
-        except Exception as exc:
-            http_status, err_code, target_status = self._classify_runtime_exception(exc)
-            safe_err_msg = (
-                sanitize_error_message(str(exc)) or f"Jev AI execution failed ({err_code})"
-            )
-            try:
-                run_repo.transition_run(
+        jev_timer = TimingCollector("jev_total").start()
+        with limiter_ctx:
+            # Phase 1 Transaction: Persist 'running' JevAIRun and COMMIT before external HTTP call
+            run_uuid = uuid.uuid4()
+            with jev_timer.stage("persistence_init"):
+                run_repo.create_run(
                     run_id=run_uuid,
-                    status=target_status,
-                    error_code=err_code,
-                    error_message=safe_err_msg,
+                    mode=clean_mode,
+                    status="running",
+                    model_id=model_id,
+                    prompt_version=prompt_version,
+                    input_digest_sha256=initial_digest,
+                    context_summary=initial_summary,
+                    analysis_job_id=job_uuid,
+                    requested_by_user_id=persisted_user_id,
                 )
-                audit_repo.add(
-                    AuditEvent(
-                        request_id=job_request_id,
-                        user_id=persisted_user_id,
-                        event_type=f"jev_ai.run.{target_status}",
-                        entity_type="jev_ai_run",
-                        entity_id=str(run_uuid),
-                        payload={
-                            "run_id": str(run_uuid),
-                            "mode": clean_mode,
-                            "status": target_status,
-                            "error_code": err_code,
-                            "advisory_only": True,
-                        },
-                    )
+                evidence_primary_copy = copy.deepcopy(evidence_primary)
+                evidence_candidate_copy = (
+                    copy.deepcopy(evidence_candidate) if evidence_candidate is not None else None
                 )
                 session.commit()
-            except SQLAlchemyError:
-                session.rollback()
+            # Note: Immediately after session.commit(), no database transaction is open while
+            # waiting on the external LM Studio HTTP call below.
 
-            raise JevAIServiceError(
-                status_code=http_status,
-                code=err_code,
-                message=safe_err_msg,
-                run_id=str(run_uuid),
-            ) from exc
+            # 5. Phase 2: External LM Studio Orchestration (Zero Open DB Transactions)
+            try:
+                if question is not None and question.strip():
+                    stripped_q = question.strip()
+                    check_blind_data_in_text(stripped_q)
+                    check_prompt_injection(stripped_q)
+                    check_authority_claims(stripped_q)
+                    if _SUPPLEMENTAL_OVERRIDE_RE.search(stripped_q):
+                        raise JevContextBlocked(
+                            "Authority or detector verdict override claim detected in question"
+                        )
 
-        # 6. Phase 3 Transaction: Persist 'completed' JevAIRun and AuditEvent
-        decision_dict, primary_text = _extract_workflow_payload(clean_mode, workflow_result)
-        final_summary: dict[str, Any] = dict(initial_summary)
-        if settings.jev_ai_store_context_summary:
-            final_summary["decision_result"] = decision_dict
-        else:
-            final_summary = {
-                "workflow": clean_mode,
-                "advisory_only": True,
-                "retention_redacted": True,
-                "baseline_id": initial_summary.get("baseline_id"),
-                "candidate_id": initial_summary.get("candidate_id"),
-                "decision_result": {
-                    "workflow": clean_mode,
-                    "advisory_only": True,
-                    "baseline_id": initial_summary.get("baseline_id"),
-                    "candidate_id": initial_summary.get("candidate_id"),
-                },
-            }
-
-        persisted_text = primary_text if settings.jev_ai_store_response_text else None
-
-        try:
-            completed_run = run_repo.transition_run(
-                run_id=run_uuid,
-                status="completed",
-                output_digest_sha256=workflow_result.output_digest,
-                response_text=persisted_text,
-                latency_ms=workflow_result.latency_ms,
-                context_summary=final_summary,
-                model_id=workflow_result.model_id,
-                prompt_version=workflow_result.prompt_version,
-            )
-            audit_repo.add(
-                AuditEvent(
-                    request_id=job_request_id,
-                    user_id=persisted_user_id,
-                    event_type="jev_ai.run.completed",
-                    entity_type="jev_ai_run",
-                    entity_id=str(run_uuid),
-                    payload={
-                        "run_id": str(run_uuid),
-                        "mode": clean_mode,
-                        "status": "completed",
-                        "input_digest_sha256": completed_run.input_digest_sha256,
-                        "output_digest_sha256": completed_run.output_digest_sha256,
-                        "advisory_only": True,
-                    },
+                with jev_timer.stage("runtime_http"):
+                    if clean_mode == "explain":
+                        workflow_result: ExplainResult | TriageResult | CompareResult | ReportResult = (
+                            orchestrator.explain(evidence_primary_copy, question=question)
+                        )
+                    elif clean_mode == "triage":
+                        workflow_result = orchestrator.triage(evidence_primary_copy)
+                    elif clean_mode == "compare":
+                        workflow_result = orchestrator.compare(
+                            evidence_primary_copy, evidence_candidate_copy
+                        )
+                    else:
+                        workflow_result = orchestrator.report(evidence_primary_copy)
+            except Exception as exc:
+                http_status, err_code, target_status = self._classify_runtime_exception(exc)
+                safe_err_msg = (
+                    sanitize_error_message(str(exc)) or f"Jev AI execution failed ({err_code})"
                 )
-            )
-            session.commit()
+                # Stop timer on exception path so timeout/error latency is captured in observability
+                jev_timer.stop(error=exc)
+                timings = jev_timer.to_dict(include_total_as="jev_total")
+                failed_latency = timings.get("jev_total", 0.0)
+
+                try:
+                    reg = get_metrics_registry()
+                    reg.histogram("jev_latency_ms").observe(failed_latency)
+                    for stg, dur in timings.items():
+                        if stg != "jev_total":
+                            reg.histogram("jev_stage_latency_ms").observe(dur, labels={"stage": stg})
+                    reg.counter("jev_requests_total").inc(
+                        1.0,
+                        labels={"mode": clean_mode, "status": target_status, "error_code": err_code},
+                    )
+                except Exception:
+                    pass
+
+                try:
+                    run_repo.transition_run(
+                        run_id=run_uuid,
+                        status=target_status,
+                        latency_ms=round(failed_latency, 2),
+                        error_code=err_code,
+                        error_message=safe_err_msg,
+                    )
+                    audit_repo.add(
+                        AuditEvent(
+                            request_id=job_request_id,
+                            user_id=persisted_user_id,
+                            event_type=f"jev_ai.run.{target_status}",
+                            entity_type="jev_ai_run",
+                            entity_id=str(run_uuid),
+                            payload={
+                                "run_id": str(run_uuid),
+                                "mode": clean_mode,
+                                "status": target_status,
+                                "error_code": err_code,
+                                "advisory_only": True,
+                            },
+                        )
+                    )
+                    session.commit()
+                except SQLAlchemyError:
+                    session.rollback()
+
+                raise JevAIServiceError(
+                    status_code=http_status,
+                    code=err_code,
+                    message=safe_err_msg,
+                    run_id=str(run_uuid),
+                ) from exc
+
+            # 6. Phase 3 Transaction: Persist 'completed' JevAIRun and AuditEvent
+            with jev_timer.stage("response_validation"):
+                decision_dict, primary_text = _extract_workflow_payload(clean_mode, workflow_result)
+                final_summary: dict[str, Any] = dict(initial_summary)
+                if settings.jev_ai_store_context_summary:
+                    final_summary["decision_result"] = decision_dict
+                else:
+                    final_summary = {
+                        "workflow": clean_mode,
+                        "advisory_only": True,
+                        "retention_redacted": True,
+                        "baseline_id": initial_summary.get("baseline_id"),
+                        "candidate_id": initial_summary.get("candidate_id"),
+                        "decision_result": {
+                            "workflow": clean_mode,
+                            "advisory_only": True,
+                            "baseline_id": initial_summary.get("baseline_id"),
+                            "candidate_id": initial_summary.get("candidate_id"),
+                        },
+                    }
+
+                persisted_text = primary_text if settings.jev_ai_store_response_text else None
+
+            with jev_timer.stage("persistence_final"):
+                try:
+                    completed_run = run_repo.transition_run(
+                        run_id=run_uuid,
+                        status="completed",
+                        output_digest_sha256=workflow_result.output_digest,
+                        response_text=persisted_text,
+                        latency_ms=workflow_result.latency_ms,
+                        context_summary=final_summary,
+                        model_id=workflow_result.model_id,
+                        prompt_version=workflow_result.prompt_version,
+                    )
+                    audit_repo.add(
+                        AuditEvent(
+                            request_id=job_request_id,
+                            user_id=persisted_user_id,
+                            event_type="jev_ai.run.completed",
+                            entity_type="jev_ai_run",
+                            entity_id=str(run_uuid),
+                            payload={
+                                "run_id": str(run_uuid),
+                                "mode": clean_mode,
+                                "status": "completed",
+                                "input_digest_sha256": completed_run.input_digest_sha256,
+                                "output_digest_sha256": completed_run.output_digest_sha256,
+                                "advisory_only": True,
+                            },
+                        )
+                    )
+                    session.commit()
+                except (SQLAlchemyError, JevAIRepositoryError) as exc:
+                    session.rollback()
+                    raise JevAIServiceError(
+                        status_code=500,
+                        code="XS_AI_PERSISTENCE_FAILED",
+                        message="Failed to persist completed Jev AI audit record; transaction rolled back",
+                        run_id=str(run_uuid),
+                    ) from exc
+
+            # Finalize Jev AI timings and observe telemetry fail-safe
+            jev_timer.stop()
+            timings = jev_timer.to_dict(include_total_as="jev_total")
+            try:
+                reg = get_metrics_registry()
+                tot_dur = timings.get("jev_total", completed_run.latency_ms or 0.0)
+                reg.histogram("jev_latency_ms").observe(tot_dur)
+                for stg, dur in timings.items():
+                    if stg != "jev_total":
+                        reg.histogram("jev_stage_latency_ms").observe(dur, labels={"stage": stg})
+                reg.counter("jev_requests_total").inc(
+                    1.0,
+                    labels={"mode": clean_mode, "status": "completed", "error_code": "NONE"},
+                )
+            except Exception:
+                pass
+
             return completed_run
-        except (SQLAlchemyError, JevAIRepositoryError) as exc:
-            session.rollback()
-            raise JevAIServiceError(
-                status_code=500,
-                code="XS_AI_PERSISTENCE_FAILED",
-                message="Failed to persist completed Jev AI audit record; transaction rolled back",
-                run_id=str(run_uuid),
-            ) from exc
 
     @staticmethod
     def _classify_runtime_exception(exc: Exception) -> tuple[int, str, str]:

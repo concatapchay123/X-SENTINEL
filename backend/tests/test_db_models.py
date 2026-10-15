@@ -1,5 +1,5 @@
-from x_sentinel.database.base import Base
 from x_sentinel.database import models  # noqa: F401
+from x_sentinel.database.base import Base
 
 
 def test_canonical_table_set() -> None:

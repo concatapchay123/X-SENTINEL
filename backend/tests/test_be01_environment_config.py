@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 import yaml
 from pydantic import ValidationError
-
-from x_sentinel.config import Settings, settings
+from x_sentinel.config import Settings
 from x_sentinel.jev_ai.guardrails import (
     JevContextBlocked,
     validate_context,
     validate_local_endpoint,
 )
-
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 

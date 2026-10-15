@@ -3,8 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from x_sentinel.detection.config import M5Config
 from x_sentinel.domain import SignalResult

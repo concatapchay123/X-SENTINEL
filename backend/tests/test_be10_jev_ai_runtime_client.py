@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 import json
-from typing import Any
-from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-
-from x_sentinel.config import Settings, settings
+from x_sentinel.config import Settings
 from x_sentinel.jev_ai.client import (
     JevAIClient,
     JevAIConfigurationError,
     JevAIConnectionError,
     JevAIDisabledError,
-    JevAIError,
     JevAIHTTPError,
     JevAIResponseError,
     JevAITimeout,
@@ -21,7 +17,6 @@ from x_sentinel.jev_ai.client import (
 )
 from x_sentinel.jev_ai.guardrails import JevContextBlocked
 from x_sentinel.jev_ai.schemas import JevResponse
-
 
 # ===========================================================================
 # 1. Configuration & Factory Tests
@@ -456,7 +451,7 @@ def test_response_malformed_json_raises_response_error() -> None:
         http_client=mock_http_client,
     )
 
-    with pytest.raises(JevAIResponseError) as exc_info:
+    with pytest.raises(JevAIResponseError):
         client.chat([{"role": "user", "content": "test"}])
 
     assert issubclass(JevAIResponseError, JevAIUnavailable)

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import Session
 
 from x_sentinel.api.schemas import (
@@ -160,16 +160,28 @@ def analyze_vector(
         require_roles(Role.ADMIN.value, Role.ANALYST.value, Role.OPERATOR.value)
     ),
 ) -> AnalysisResponse:
-    try:
-        persisted_user_id = ensure_persisted_user(db, user)
+    from infrastructure.monitoring.concurrency import (
+        ConcurrencyLimitExceededError,
+        get_detector_limiter,
+    )
 
-        result = service.analyze_vector(
-            features=req.features,
-            request_id=req.request_id,
-            session=db,
-            user_id=persisted_user_id,
-        )
-        return AnalysisResponse(**result.__dict__)
+    detector_limiter = get_detector_limiter()
+    try:
+        with detector_limiter.acquire():
+            persisted_user_id = ensure_persisted_user(db, user)
+
+            result = service.analyze_vector(
+                features=req.features,
+                request_id=req.request_id,
+                session=db,
+                user_id=persisted_user_id,
+            )
+            return AnalysisResponse(**result.__dict__)
+    except ConcurrencyLimitExceededError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={"code": "XS_DETECTOR_OVERLOADED", "message": str(exc)},
+        ) from exc
     except VectorValidationError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -245,6 +257,7 @@ def list_analysis_history(
         decision=decision,
         input_mode=input_mode,
         demo_mode=demo_mode,
+        user=user,
     )
     return AnalysisHistoryListResponse(
         items=items,
@@ -270,7 +283,7 @@ def get_analysis_detail(
         )
     ),
 ) -> AnalysisDetailResponse:
-    detail = history_svc.get_analysis_detail(session=db, identifier=analysis_id)
+    detail = history_svc.get_analysis_detail(session=db, identifier=analysis_id, user=user)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -302,7 +315,9 @@ def get_analysis_evidence(
     ),
 ) -> CanonicalEvidenceResponse:
     try:
-        evidence = evidence_svc.get_canonical_evidence(session=db, identifier=analysis_id)
+        evidence = evidence_svc.get_canonical_evidence(
+            session=db, identifier=analysis_id, user=user
+        )
     except EvidenceIntegrityError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -590,3 +605,55 @@ def ask_jev_ai_docs(
             "advisory_only": True,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# System Observability & Telemetry Endpoints (PLAN-BE-17)
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/v1/system/metrics",
+    tags=["System"],
+    summary="Get Prometheus exposition metrics for system observability",
+    include_in_schema=False,
+)
+def get_prometheus_metrics(
+    user: AuthUser = Depends(
+        require_roles(Role.ADMIN.value, Role.OPERATOR.value)
+    ),
+) -> Response:
+    if not settings.metrics_export_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "XS_FEATURE_DISABLED", "message": "Metrics export is disabled in configuration"},
+        )
+
+    from infrastructure.monitoring.metrics import get_metrics_registry
+
+    reg = get_metrics_registry()
+    content = reg.generate_prometheus_text()
+    return Response(content=content, media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
+@router.get(
+    "/v1/system/telemetry",
+    tags=["System"],
+    summary="Get authentic hardware, memory, and process telemetry via psutil",
+    include_in_schema=False,
+)
+def get_system_telemetry(
+    user: AuthUser = Depends(
+        require_roles(Role.ADMIN.value, Role.OPERATOR.value)
+    ),
+) -> dict[str, object]:
+    if not settings.performance_monitoring_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "XS_FEATURE_DISABLED", "message": "Performance monitoring is disabled in configuration"},
+        )
+
+    from infrastructure.monitoring.telemetry import collect_system_telemetry
+
+    return collect_system_telemetry()
+

@@ -1,6 +1,7 @@
 name: ci
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -20,20 +21,61 @@ jobs:
       XS_DATABASE_REQUIRED: "true"
       XS_EXPECTED_DB_REVISION: 0002_v3_jev_ai_audit
       XS_DEMO_MODE: "true"
+      XS_JEV_AI_ENABLED: "false"
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install system ODBC dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y unixodbc-dev
-      - run: pip install -e '.[dev]'
-      - run: python scripts/baseline_audit.py
-      - run: alembic -c database/alembic.ini upgrade head
-      - run: python scripts/check_schema_revision.py
-      - run: alembic -c database/alembic.ini check
-      - run: ruff check backend frontend tests scripts database
-      - run: mypy backend/src
-      - run: pytest -q
+
+      - name: Install dependencies
+        run: pip install -e '.[dev]'
+
+      - name: Gate 1 — Secret Sanitization Scan
+        run: python scripts/scan_secrets.py --path .
+
+      - name: Gate 2 — Baseline & Package Integrity
+        run: |
+          python scripts/baseline_audit.py
+          python scripts/validate_v3_package.py
+          python scripts/verify_no_vector_db.py
+
+      - name: Gate 3 — Wait for Database Service
+        run: python scripts/ensure_database.py
+
+      - name: Gate 4 — Database Migration Gate
+        run: |
+          python scripts/migration_gate.py --upgrade
+          python scripts/check_schema_revision.py
+          alembic -c database/alembic.ini check
+
+      - name: Gate 5 — Code Quality & Static Analysis
+        run: |
+          ruff check backend frontend tests scripts database infrastructure
+          mypy backend/src tests/integration tests/security tests/fixtures scripts
+
+      - name: Gate 6 — Docker Compose Specification Validation
+        run: docker compose config
+
+      - name: Gate 7 — Docker Container Build Test
+        run: |
+          docker build -f infrastructure/docker/backend.Dockerfile -t x-sentinel-backend:ci .
+          docker build -f infrastructure/docker/frontend.Dockerfile -t x-sentinel-frontend:ci .
+
+      - name: Gate 8 — Release Tuple & Manifest Verification
+        run: python scripts/verify_release_tuple.py --image-tag x-sentinel-backend:ci
+
+      - name: Gate 9 — Master Release Checklist Validation
+        run: python scripts/release_gate.py --skip-tests
+
+      - name: Gate 10 — Automated Test Suite
+        run: pytest -q

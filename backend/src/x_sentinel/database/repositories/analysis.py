@@ -51,6 +51,7 @@ class AnalysisJobRepository:
         decision: str | None = None,
         input_mode: str | None = None,
         demo_mode: bool | None = None,
+        user_id: uuid.UUID | None = None,
     ) -> tuple[Sequence[AnalysisJob], int]:
         """Filters analysis jobs with pagination and optional decision join."""
         conditions = []
@@ -60,6 +61,8 @@ class AnalysisJobRepository:
             conditions.append(AnalysisJob.input_mode == input_mode.lower().strip())
         if demo_mode is not None:
             conditions.append(AnalysisJob.demo_mode == demo_mode)
+        if user_id is not None:
+            conditions.append(AnalysisJob.user_id == user_id)
 
         if decision is not None:
             # Join with AnalysisResultRecord to filter by decision

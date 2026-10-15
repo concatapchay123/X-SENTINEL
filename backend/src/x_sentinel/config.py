@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     latency_p95_ms_target: float = 10.0
     circuit_breaker_ms: float = 8.0
 
+    max_concurrent_detector_requests: int = 50
+    max_concurrent_ai_requests: int = 4
+    ai_queue_capacity: int = 16
+    ai_queue_timeout_seconds: float = 10.0
+    performance_monitoring_enabled: bool = True
+    metrics_export_enabled: bool = True
+
     @field_validator("backend_port", "frontend_port")
     @classmethod
     def validate_ports(cls, v: int) -> int:
@@ -103,6 +110,9 @@ class Settings(BaseSettings):
         "jev_ai_timeout_seconds",
         "circuit_breaker_ms",
         "latency_p95_ms_target",
+        "max_concurrent_detector_requests",
+        "max_concurrent_ai_requests",
+        "ai_queue_timeout_seconds",
     )
     @classmethod
     def validate_positive_numbers(cls, v: float | int) -> float | int:
@@ -110,11 +120,11 @@ class Settings(BaseSettings):
             raise ValueError(f"Numeric parameter must be > 0; got {v}")
         return v
 
-    @field_validator("db_max_overflow")
+    @field_validator("db_max_overflow", "ai_queue_capacity")
     @classmethod
     def validate_non_negative_int(cls, v: int) -> int:
         if v < 0:
-            raise ValueError(f"db_max_overflow must be >= 0; got {v}")
+            raise ValueError(f"Parameter must be >= 0; got {v}")
         return v
 
     @field_validator("jev_ai_temperature")

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from x_sentinel.detection.config import M2Config
 from x_sentinel.domain import SignalResult
@@ -83,10 +84,10 @@ def tabular_strip(
         mixed = [(1.0 - alpha) * clean_vec[i] + alpha * float(benign_sample[i]) for i in range(dim)]
 
         pred_raw = model_fn(mixed)
-        if hasattr(pred_raw, "score"):
-            pred_score = float(pred_raw.score)
-        elif isinstance(pred_raw, (tuple, list)):
+        if isinstance(pred_raw, (tuple, list)):
             pred_score = float(pred_raw[0])
+        elif hasattr(pred_raw, "score"):
+            pred_score = float(pred_raw.score)
         else:
             pred_score = float(pred_raw)
 

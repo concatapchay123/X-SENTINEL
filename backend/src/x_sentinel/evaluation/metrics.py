@@ -23,6 +23,14 @@ ALLOWED_LATENCY_SCOPES = frozenset(
         "EndToEnd_WithSHAP",
         "EndToEnd_WithM5",
         "EndToEnd_WithJEV",
+        "model_inference",
+        "shap_computation",
+        "detector_signals",
+        "fusion_decision",
+        "input_validation",
+        "persistence",
+        "jev_ai",
+        "api_request",
     }
 )
 ALLOWED_RECALL_KINDS = frozenset(

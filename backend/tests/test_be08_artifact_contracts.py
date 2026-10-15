@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-import pytest
 
+import pytest
 from x_sentinel.audit.artifacts import (
     ArtifactIntegrityError,
     ArtifactNotFoundError,

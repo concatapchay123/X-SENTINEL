@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 import pytest
 from x_sentinel.data.views import load_view_map
 from x_sentinel.detection.config import (

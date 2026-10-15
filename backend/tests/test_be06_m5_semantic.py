@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 import pytest
 from x_sentinel.detection.config import M5Config
 from x_sentinel.detection.m5_semantic import (

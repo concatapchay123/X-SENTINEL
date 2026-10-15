@@ -1,4 +1,5 @@
 import math
+
 import pytest
 from x_sentinel.data.schema import FEATURE_COUNT, VectorValidationError, validate_vector
 

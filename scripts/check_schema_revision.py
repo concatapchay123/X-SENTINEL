@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+
 from alembic.config import Config
 from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, text

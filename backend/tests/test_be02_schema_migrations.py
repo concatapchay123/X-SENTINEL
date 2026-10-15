@@ -9,11 +9,9 @@ from sqlalchemy.orm import Session
 from x_sentinel.config import settings
 from x_sentinel.database.base import Base
 from x_sentinel.database.models import (
-    Alert,
     AnalysisJob,
     AnalysisResultRecord,
     DetectorScore,
-    ExperimentRun,
     JevAIFeedback,
     JevAIRun,
 )
@@ -492,8 +490,8 @@ def test_detector_truth_uncontaminated_by_jev_failure() -> None:
 
 
 def test_schema_drift_detector_catches_intentional_drift() -> None:
-    from pathlib import Path
     import sys
+    from pathlib import Path
     ROOT = Path(__file__).resolve().parents[2]
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))

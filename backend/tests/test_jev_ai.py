@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import pytest
-
-from x_sentinel.jev_ai.guardrails import JevContextBlocked, validate_context, validate_local_endpoint
+from x_sentinel.jev_ai.guardrails import (
+    JevContextBlocked,
+    validate_context,
+    validate_local_endpoint,
+)
 from x_sentinel.jev_ai.prompt_builder import build_messages
 from x_sentinel.jev_ai.schemas import JevContext, JevRequest
 

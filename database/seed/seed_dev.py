@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from sqlalchemy import select
-
 from x_sentinel.database.models import Role
 from x_sentinel.database.session import SessionLocal
 

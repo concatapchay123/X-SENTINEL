@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from x_sentinel.detection.config import M4Config
 from x_sentinel.domain import SignalResult

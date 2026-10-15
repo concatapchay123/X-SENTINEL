@@ -1,5 +1,13 @@
-from __future__ import annotations
-
+from .raw_pe import (
+    FeatureGatedError,
+    FileTooLargeError,
+    MalformedPEError,
+    PathTraversalError,
+    PEParseError,
+    RawPEError,
+    RawPEFeatureExtractor,
+    extract_static_pe,
+)
 from .schema import (
     FEATURE_COUNT,
     DimensionMismatchError,
@@ -24,9 +32,16 @@ from .views import (
 __all__ = [
     "FEATURE_COUNT",
     "DimensionMismatchError",
+    "FeatureGatedError",
+    "FileTooLargeError",
     "IndicesSpec",
     "InvalidDataTypeError",
+    "MalformedPEError",
     "NonFiniteValueError",
+    "PEParseError",
+    "PathTraversalError",
+    "RawPEError",
+    "RawPEFeatureExtractor",
     "SliceSpec",
     "StructuralShapeError",
     "VectorSchema",
@@ -34,8 +49,10 @@ __all__ = [
     "ViewMap",
     "ViewSpec",
     "compute_mapping_hash",
+    "extract_static_pe",
     "load_view_map",
     "validate_named_features",
     "validate_vector",
     "validate_vector_batch",
 ]
+

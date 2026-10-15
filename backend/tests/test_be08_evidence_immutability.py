@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
-import pytest
 
+import pytest
 from x_sentinel.audit.evidence import CanonicalEvidence
 
 

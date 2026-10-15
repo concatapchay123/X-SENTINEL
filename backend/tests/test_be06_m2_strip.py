@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+
 import pytest
 from x_sentinel.detection.config import M2Config
 from x_sentinel.detection.m2_strip import M2StripDetector, binary_entropy, tabular_strip
@@ -221,6 +222,7 @@ class TestM2StripDetectorClass:
 
     def test_detector_with_real_lightgbm_service_regression(self) -> None:
         from pathlib import Path
+
         from x_sentinel.model.lightgbm_service import LightGBMService
 
         model_path = Path("datasets/ember2018/ember_model_2018.txt")

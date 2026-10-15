@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+
 import pytest
-from x_sentinel.data.views import ViewMap, load_view_map
+from x_sentinel.data.views import load_view_map
 from x_sentinel.detection.config import M3Config
 from x_sentinel.detection.m3_view import (
     M3ViewDetector,

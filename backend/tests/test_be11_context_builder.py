@@ -4,20 +4,13 @@ import copy
 import hashlib
 import json
 from typing import Any
-from unittest.mock import MagicMock
 
 import httpx
 import pytest
-
 from x_sentinel.audit.evidence import CanonicalEvidence
 from x_sentinel.jev_ai.client import JevAIClient
 from x_sentinel.jev_ai.guardrails import (
-    ALLOWED_CONTEXT_KEYS,
-    ALLOWED_LOCAL_HOSTS,
-    ALLOWED_PROVENANCE_KEYS,
-    ALLOWED_TOP_SHAP_KEYS,
     BLIND_DATA_KEYS,
-    FORBIDDEN_KEYS,
     JevAllowlistViolation,
     JevBlindDataBlocked,
     JevContextBlocked,
@@ -26,23 +19,19 @@ from x_sentinel.jev_ai.guardrails import (
     apply_allowlist,
     canonical_json_dumps,
     check_blind_data_in_text,
-    check_forbidden_keys,
     compute_context_digest,
     redact_sensitive_data,
     redact_sensitive_text,
     validate_context,
     validate_context_size,
-    walk_keys,
 )
 from x_sentinel.jev_ai.orchestrator import JevAIOrchestrator
 from x_sentinel.jev_ai.prompt_builder import (
-    SYSTEM_POLICY,
     build_messages,
     build_safe_context,
     project_canonical_evidence,
 )
 from x_sentinel.jev_ai.schemas import JevContext, JevMode, JevRequest, JevResponse
-
 
 # ===========================================================================
 # Test Fixtures & Helpers

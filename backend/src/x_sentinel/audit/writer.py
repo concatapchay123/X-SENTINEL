@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import asdict, is_dataclass
-from datetime import datetime, timezone
 import json
 import os
+from dataclasses import asdict, is_dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from x_sentinel.audit.evidence import CanonicalEvidence, compute_evidence_hash
+from x_sentinel.audit.evidence import CanonicalEvidence
 
 
 class AuditWriteFailureError(RuntimeError):
@@ -31,7 +31,7 @@ class AuditWriter:
                 payload = event.to_dict()
                 if "evidence_hash" not in payload or not payload["evidence_hash"]:
                     payload["evidence_hash"] = event.compute_hash()
-            elif is_dataclass(event):
+            elif is_dataclass(event) and not isinstance(event, type):
                 payload = asdict(event)
             elif hasattr(event, "__dict__"):
                 payload = dict(event.__dict__)
@@ -39,7 +39,7 @@ class AuditWriter:
                 payload = dict(event)
 
             if "audit_timestamp" not in payload:
-                payload["audit_timestamp"] = datetime.now(timezone.utc).isoformat()
+                payload["audit_timestamp"] = datetime.now(UTC).isoformat()
 
             serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True)
             with self.path.open("a", encoding="utf-8") as f:

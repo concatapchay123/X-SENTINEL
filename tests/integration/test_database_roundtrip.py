@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import os
 import uuid
+
 import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
-
 from x_sentinel.config import settings
 from x_sentinel.database.models import AnalysisJob
 

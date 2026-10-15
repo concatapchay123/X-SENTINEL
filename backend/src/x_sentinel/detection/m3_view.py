@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from x_sentinel.detection.config import M3Config
 from x_sentinel.domain import SignalResult
 
 
 def view_contributions(
-    shap_by_view: dict[str, Sequence[float]], eps: float = 1e-12
+    shap_by_view: Mapping[str, Sequence[float]], eps: float = 1e-12
 ) -> dict[str, float]:
     """Calculate normalized absolute SHAP attribution contribution per semantic view.
 
@@ -19,7 +20,7 @@ def view_contributions(
     When total attribution <= eps, returns 0.0 for all views.
     Normalized so sum(C(v)) == 1.0 when total > eps.
     """
-    if not isinstance(shap_by_view, dict):
+    if not isinstance(shap_by_view, (dict, Mapping)):
         raise TypeError(f"shap_by_view must be a dict, got {type(shap_by_view)}")
 
     totals: dict[str, float] = {}
@@ -97,10 +98,10 @@ class M3ViewDetector:
 
     def _prepare_views(
         self,
-        shap_input: dict[str, Sequence[float]] | Sequence[float],
+        shap_input: Mapping[str, Sequence[float]] | Sequence[float],
         view_map: Any = None,
-    ) -> dict[str, Sequence[float]]:
-        if isinstance(shap_input, dict):
+    ) -> Mapping[str, Sequence[float]]:
+        if isinstance(shap_input, (dict, Mapping)):
             return shap_input
         if view_map is not None and hasattr(view_map, "split"):
             return view_map.split(shap_input)
@@ -123,7 +124,7 @@ class M3ViewDetector:
 
     def score(
         self,
-        shap_input: dict[str, Sequence[float]] | Sequence[float],
+        shap_input: Mapping[str, Sequence[float]] | Sequence[float],
         view_map: Any = None,
     ) -> float:
         res = self.detect(shap_input, view_map=view_map)
@@ -131,7 +132,7 @@ class M3ViewDetector:
 
     def detect(
         self,
-        shap_input: dict[str, Sequence[float]] | Sequence[float],
+        shap_input: Mapping[str, Sequence[float]] | Sequence[float],
         view_map: Any = None,
     ) -> SignalResult:
         if not self.config.enabled:

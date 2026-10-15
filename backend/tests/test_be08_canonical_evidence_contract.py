@@ -1,12 +1,7 @@
 from __future__ import annotations
 
-import math
 import pytest
-
 from x_sentinel.audit.evidence import (
-    ALLOWED_DECISIONS,
-    ALLOWED_INPUT_MODES,
-    CANONICAL_DECISIONS,
     CanonicalEvidence,
     EvidenceValidationError,
     ScientificEvidenceRejectedError,

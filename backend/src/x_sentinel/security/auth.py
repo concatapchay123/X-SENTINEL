@@ -10,9 +10,15 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from x_sentinel.config import settings
+from x_sentinel.security.policy import (
+    Permission,
+    get_permissions_for_roles,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
+    from x_sentinel.database.models import AnalysisJob
 
 
 class Role(StrEnum):
@@ -22,9 +28,25 @@ class Role(StrEnum):
     OPERATOR = "operator"
 
 
+class ObjectAccessDeniedError(HTTPException):
+    """Raised when an authenticated principal attempts cross-user access
+    to an unauthorized object.
+    """
+
+    def __init__(
+        self,
+        message: str = "Access denied: resource belongs to another user",
+        code: str = "XS_FORBIDDEN",
+    ) -> None:
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": code, "message": message},
+        )
+
+
 @dataclass(frozen=True)
 class AuthUser:
-    """Authenticated user context with assigned roles."""
+    """Authenticated user context with assigned roles and derived permissions."""
 
     user_id: uuid.UUID
     email: str
@@ -35,6 +57,20 @@ class AuthUser:
         if not required_roles:
             return True
         return any(r in self.roles for r in required_roles)
+
+    def has_permission(self, *required_permissions: Permission | str) -> bool:
+        if not required_permissions:
+            return True
+        user_perms = get_permissions_for_roles(self.roles)
+        for p in required_permissions:
+            perm_enum = Permission(p) if isinstance(p, str) else p
+            if perm_enum in user_perms:
+                return True
+        return False
+
+    @property
+    def permissions(self) -> frozenset[Permission]:
+        return get_permissions_for_roles(self.roles)
 
 
 # Predefined tokens for testing and development environments
@@ -199,10 +235,72 @@ def require_roles(*allowed_roles: str):
     return role_checker
 
 
-def ensure_persisted_user(session: Session, user: AuthUser | None) -> uuid.UUID | None:
-    """Ensures an authenticated non-anonymous user exists in the users table
-    and returns their UUID.
+def require_permissions(*required_permissions: Permission | str):
+    """Factory creating a FastAPI dependency verifying at least one permission."""
+
+    def permission_checker(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+        if settings.api_auth_mode == "none":
+            return user
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "XS_FORBIDDEN",
+                    "message": "Authenticated user account is inactive",
+                },
+            )
+
+        if not user.has_permission(*required_permissions):
+            req_names = [
+                p.value if isinstance(p, Permission) else str(p) for p in required_permissions
+            ]
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "code": "XS_FORBIDDEN",
+                    "message": f"Action requires permission from {req_names}",
+                },
+            )
+        return user
+
+    return permission_checker
+
+
+def is_admin(user: AuthUser | None) -> bool:
+    """Checks whether principal is admin or running in unauthenticated development mode."""
+    if settings.api_auth_mode == "none" or user is None:
+        return True
+    if user.user_id == ANONYMOUS_USER.user_id:
+        return True
+    return user.has_role(Role.ADMIN.value)
+
+
+def assert_job_ownership(
+    job: AnalysisJob,
+    user: AuthUser | None,
+    *,
+    allow_evaluator: bool = False,
+    resource_label: str = "analysis record",
+) -> None:
+    """Verifies object-level ownership (BOLA/IDOR prevention).
+
+    Admins can access any job. Evaluators can access if allow_evaluator is True.
+    Non-admin users can only access jobs they own.
     """
+    if is_admin(user):
+        return
+    if allow_evaluator and user is not None and user.has_role(Role.EVALUATOR.value):
+        return
+    if job.user_id is not None and user is not None and job.user_id != user.user_id:
+        raise ObjectAccessDeniedError(
+            message=f"Access denied: {resource_label} belongs to another user",
+            code="XS_FORBIDDEN",
+        )
+
+
+def ensure_persisted_user(session: Session, user: AuthUser | None) -> uuid.UUID | None:
+    """Ensures an authenticated non-anonymous user exists in the users table and returns UUID."""
     if user is None or settings.api_auth_mode == "none" or user.user_id == ANONYMOUS_USER.user_id:
         return None
 

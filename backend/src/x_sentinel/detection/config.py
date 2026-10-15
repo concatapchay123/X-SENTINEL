@@ -125,13 +125,13 @@ def load_detector_config(config_source: Path | str | dict[str, Any] | None = Non
         config_path = Path("configs/detector.yaml")
         if not config_path.exists():
             raise FileNotFoundError(f"Detector config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     elif isinstance(config_source, (str, Path)):
         config_path = Path(config_source)
         if not config_path.exists():
             raise FileNotFoundError(f"Detector config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     elif isinstance(config_source, dict):
         data = config_source

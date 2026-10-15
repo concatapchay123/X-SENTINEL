@@ -11,6 +11,7 @@ from x_sentinel.audit.evidence import (
 )
 from x_sentinel.database.models import AnalysisJob
 from x_sentinel.database.repositories.evidence import CanonicalEvidenceRepository
+from x_sentinel.security.auth import AuthUser, assert_job_ownership
 
 
 class EvidenceService:
@@ -26,18 +27,21 @@ class EvidenceService:
         self,
         session: Session,
         identifier: str,
+        user: AuthUser | None = None,
     ) -> CanonicalEvidence | None:
         """Retrieves and strictly validates integrity of canonical evidence for a job.
 
         Args:
             session: SQLAlchemy database session.
             identifier: Either the AnalysisJob UUID or the request_id.
+            user: Authenticated principal context for ownership verification.
 
         Returns:
             CanonicalEvidence object with verified SHA-256 digest, or None if job/evidence absent.
 
         Raises:
             EvidenceIntegrityError: If stored evidence fails SHA-256 integrity verification.
+            ObjectAccessDeniedError: If non-admin user attempts access to another's evidence.
         """
         # Resolve job by UUID or request_id
         job: AnalysisJob | None = None
@@ -54,6 +58,9 @@ class EvidenceService:
 
         if job is None:
             return None
+
+        # Enforce BOLA/IDOR protection
+        assert_job_ownership(job, user, allow_evaluator=True, resource_label="canonical evidence")
 
         repo = self._repo(session)
         evidence = repo.get_canonical_evidence(job.request_id)

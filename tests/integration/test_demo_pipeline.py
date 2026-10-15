@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from x_sentinel.services.analysis_service import AnalysisService
 
 

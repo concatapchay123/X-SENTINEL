@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+
 import pytest
 from x_sentinel.detection.config import M1Config
 from x_sentinel.detection.m1_tadr import M1TADRDetector, m1_tadr

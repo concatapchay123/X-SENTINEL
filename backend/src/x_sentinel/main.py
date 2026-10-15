@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+import time
+
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -11,6 +13,56 @@ from x_sentinel.database.health import database_health
 from x_sentinel.jev_ai.status import get_jev_status
 
 app = FastAPI(title="X-SENTINEL", version="0.3.0-baseline-v3")
+
+
+@app.middleware("http")
+async def performance_metrics_middleware(request: Request, call_next):
+    start_ns = time.perf_counter_ns()
+    status_code = 500
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    finally:
+        elapsed_ms = max(0.001, (time.perf_counter_ns() - start_ns) / 1_000_000.0)
+        try:
+            from infrastructure.monitoring.metrics import get_metrics_registry
+
+            reg = get_metrics_registry()
+            raw_path = request.url.path
+            if raw_path.startswith("/v1/analysis/") and raw_path.endswith("/evidence"):
+                ep = "/v1/analysis/{id}/evidence"
+            elif raw_path.startswith("/v1/analysis/") and len(raw_path.split("/")) == 4:
+                ep = "/v1/analysis/{id}"
+            elif raw_path.startswith("/v1/alerts/") and len(raw_path.split("/")) == 4:
+                ep = "/v1/alerts/{id}"
+            elif raw_path.startswith("/v1/ai/runs/") and raw_path.endswith("/feedback"):
+                ep = "/v1/ai/runs/{id}/feedback"
+            elif raw_path.startswith("/v1/ai/runs/") and len(raw_path.split("/")) == 5:
+                ep = "/v1/ai/runs/{id}"
+            else:
+                ep = raw_path
+
+            reg.histogram("api_request_latency_ms").observe(
+                elapsed_ms,
+                labels={
+                    "method": request.method,
+                    "endpoint": ep,
+                    "status_code": str(status_code),
+                },
+            )
+            reg.counter("api_requests_total").inc(
+                1.0,
+                labels={
+                    "method": request.method,
+                    "endpoint": ep,
+                    "status_code": str(status_code),
+                },
+            )
+        except Exception:
+            pass
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.allowed_origins.split(",") if o.strip()],
@@ -102,3 +154,26 @@ def config_status() -> dict[str, object]:
             "local_only": settings.jev_ai_local_only,
         },
     }
+
+
+@app.get(
+    "/metrics",
+    tags=["System"],
+    summary="Prometheus scrape endpoint",
+    include_in_schema=False,
+)
+def metrics() -> Response:
+    from fastapi import HTTPException, status
+
+    from infrastructure.monitoring.metrics import get_metrics_registry
+
+    if not settings.metrics_export_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "XS_FEATURE_DISABLED", "message": "Metrics export is disabled in configuration"},
+        )
+
+    reg = get_metrics_registry()
+    content = reg.generate_prometheus_text()
+    return Response(content=content, media_type="text/plain; version=0.0.4; charset=utf-8")
+

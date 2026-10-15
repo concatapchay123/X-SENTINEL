@@ -10,6 +10,16 @@ services:
       - "${MSSQL_PORT:-1433}:1433"
     volumes:
       - mssql_data:/var/opt/mssql
+    networks:
+      - xsentinel_net
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 4096M
+        reservations:
+          cpus: "1.0"
+          memory: 1024M
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}' -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}' -Q 'SELECT 1'"]
       interval: 8s
@@ -21,11 +31,15 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/backend.Dockerfile
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       XS_DATABASE_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}@mssql:1433/xsentinel?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes
       XS_EXPECTED_DB_REVISION: 0002_v3_jev_ai_audit
     command: ["alembic", "-c", "database/alembic.ini", "upgrade", "head"]
+    networks:
+      - xsentinel_net
     depends_on:
       mssql:
         condition: service_healthy
@@ -35,13 +49,18 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/backend.Dockerfile
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       XS_BACKEND_HOST: 0.0.0.0
       XS_BACKEND_PORT: 8000
       XS_DATABASE_URL: mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-XSentinel_Strong_Pass_2025!}@mssql:1433/xsentinel?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes
       XS_DATABASE_REQUIRED: "true"
       XS_EXPECTED_DB_REVISION: 0002_v3_jev_ai_audit
+      XS_DEMO_MODE: ${XS_DEMO_MODE:-true}
+      XS_JEV_AI_ENABLED: ${XS_JEV_AI_ENABLED:-false}
+      XS_JEV_AI_BASE_URL: ${XS_JEV_AI_BASE_URL:-http://host.docker.internal:1234/v1}
     ports:
       - "8000:8000"
     extra_hosts:
@@ -50,6 +69,16 @@ services:
       - ./configs:/app/configs:ro
       - ./artifacts:/app/artifacts
       - ./models:/app/models:ro
+    networks:
+      - xsentinel_net
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 4096M
+        reservations:
+          cpus: "1.0"
+          memory: 1024M
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -64,11 +93,23 @@ services:
     build:
       context: .
       dockerfile: infrastructure/docker/frontend.Dockerfile
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       XS_API_BASE_URL: http://backend:8000
     ports:
       - "8501:8501"
+    networks:
+      - xsentinel_net
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
     depends_on:
       backend:
         condition: service_healthy
@@ -76,3 +117,8 @@ services:
 volumes:
   mssql_data:
     name: x_sentinel_mssql_data_v3
+
+networks:
+  xsentinel_net:
+    name: x_sentinel_network_v3
+    driver: bridge

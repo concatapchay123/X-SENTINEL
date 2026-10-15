@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 path = Path("sample_data/demo_vector.json")
 path.parent.mkdir(parents=True, exist_ok=True)

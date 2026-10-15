@@ -12,6 +12,7 @@ from x_sentinel.api.schemas import (
     AnalysisResultDetail,
     DetectorScoreItem,
 )
+from x_sentinel.config import settings
 from x_sentinel.database.models import (
     AnalysisResultRecord,
     Artifact,
@@ -20,6 +21,7 @@ from x_sentinel.database.repositories.analysis import (
     AnalysisJobRepository,
     AnalysisResultRepository,
 )
+from x_sentinel.security.auth import AuthUser, assert_job_ownership, is_admin
 
 
 class HistoryService:
@@ -48,9 +50,16 @@ class HistoryService:
         decision: str | None = None,
         input_mode: str | None = None,
         demo_mode: bool | None = None,
+        user: AuthUser | None = None,
     ) -> tuple[list[AnalysisJobSummary], int]:
-        """Lists historical analysis jobs with filters, pagination, and result summaries."""
+        """Lists historical analysis jobs with filters, pagination, and user ownership scoping."""
         repo = self._get_job_repo(session)
+
+        filter_user_id: uuid.UUID | None = None
+        if user is not None and settings.api_auth_mode != "none":
+            if not is_admin(user):
+                filter_user_id = user.user_id
+
         jobs, total = repo.list_jobs_filtered(
             limit=limit,
             offset=offset,
@@ -58,13 +67,16 @@ class HistoryService:
             decision=decision,
             input_mode=input_mode,
             demo_mode=demo_mode,
+            user_id=filter_user_id,
         )
 
         job_ids = [j.id for j in jobs]
         results_by_job: dict[uuid.UUID, AnalysisResultRecord] = {}
         if job_ids:
             records = session.scalars(
-                select(AnalysisResultRecord).where(AnalysisResultRecord.analysis_job_id.in_(job_ids))
+                select(AnalysisResultRecord).where(
+                    AnalysisResultRecord.analysis_job_id.in_(job_ids)
+                )
             ).all()
             results_by_job = {r.analysis_job_id: r for r in records}
 
@@ -92,12 +104,16 @@ class HistoryService:
         self,
         session: Session,
         identifier: str,
+        user: AuthUser | None = None,
     ) -> AnalysisDetailResponse | None:
-        """Retrieves full analysis record including detector scores, alerts, and artifacts."""
+        """Retrieves full analysis record verifying object-level authorization."""
         repo = self._get_job_repo(session)
         job, result_record, scores, alerts = repo.get_detail(identifier)
         if job is None:
             return None
+
+        # Enforce BOLA/IDOR protection
+        assert_job_ownership(job, user, allow_evaluator=True, resource_label="analysis record")
 
         # Look up evidence artifact if available
         evidence_artifact = session.scalar(

@@ -4,7 +4,6 @@ import os
 
 import pytest
 from sqlalchemy import create_engine, text
-
 from x_sentinel.config import settings
 
 pytestmark = [pytest.mark.integration, pytest.mark.db]

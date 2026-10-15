@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import hashlib
+import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-import uuid
 
 
 class ArtifactError(Exception):
@@ -137,5 +137,5 @@ def create_artifact_record_from_file(
         content_type=content_type,
         size_bytes=size_bytes,
         metadata_json=metadata or {},
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )

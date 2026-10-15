@@ -470,7 +470,6 @@ def test_database_health_ahead_revision() -> None:
 def test_classify_revision_status_works_from_subdirectories(monkeypatch) -> None:
     """classify_revision_status must locate alembic.ini even if current working directory changes."""
     from pathlib import Path
-    import os
 
     backend_dir = Path(__file__).resolve().parents[1]
     monkeypatch.chdir(backend_dir)

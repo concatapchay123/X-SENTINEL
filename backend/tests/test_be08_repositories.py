@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import uuid
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
 from x_sentinel.audit.evidence import CanonicalEvidence
 from x_sentinel.audit.writer import AuditWriteFailureError
 from x_sentinel.config import settings

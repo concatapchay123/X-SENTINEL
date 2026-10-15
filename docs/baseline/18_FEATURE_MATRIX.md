@@ -18,5 +18,6 @@ Statuses: Not Started → Skeleton → Partial → Implemented → Integrated �
 | Jev AI frontend | Planned | FE-06 E2E/advisory separation |
 | E0–E5 | Tested / Verified (Frozen Candidate Run; Strict Scientific Freeze Gated) | `artifacts/evaluation/be14_candidate_suite/`, `verify_run_artifacts`, `recompute_metrics_from_raw`, `test_be14_threat_simulation_e0_e5_statistics.py` |
 | Blind evaluation | Tested / Verified | 3-role `BlindCustodyGuard`, SHA-256 `BlindPredictionPackage`, `BlindEvaluator` (`test_be14_threat_simulation_e0_e5_statistics.py`) |
+| Performance & Observability | Tested / Verified | P50/P95/P99 latency benchmarks, concurrency budgets, fail-closed AI timeout load reports, Prometheus metrics exporter, authentic OS telemetry (`artifacts/performance/*`, `tests/performance/*`) |
 | Docker/CI | Skeleton | clean build/migration/test evidence |
 | Raw PE/LIEF | Phase 2 | equivalence + safety tests |

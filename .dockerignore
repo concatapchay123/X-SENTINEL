@@ -1,13 +1,61 @@
+# Git and CI
 .git
 .github
+
+# Python caches and build output
 **/__pycache__
-**/*.pyc
+**/*.py[cod]
+**/*$py.class
 .pytest_cache
 .mypy_cache
 .ruff_cache
-*.zip
-artifacts/**
-!artifacts/.gitkeep
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Environment files and credentials
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.id_rsa
+*.crt
+*secret*.json
+*secret*.yaml
+*secret*.yml
+*secret*.txt
+*credential*.json
+*credential*.yaml
+*credential*.yml
+*credential*.txt
+**/secrets/**
+**/credentials/**
+!backend/src/x_sentinel/security/secrets.py
+!scripts/scan_secrets.py
+
+# Prohibited datasets, raw files, and blind evaluation boundaries
 datasets/**
 !datasets/.gitkeep
-source_materials/*.docx
+data/private/**
+data/raw/**
+blind_evaluation/**
+*blind*manifest*
+*poisoning*manifest*
+*hidden_manifest*
+*raw_pe*
+
+# Tests and documentation
+tests/**
+backend/tests/**
+docs/**
+source_materials/**
+
+# Temporary files and logs
+*.zip
+*.tar.gz
+*.log
+*.tmp
+

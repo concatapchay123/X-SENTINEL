@@ -57,7 +57,12 @@ class AnalysisService:
         session: Session | None = None,
         user_id: uuid.UUID | None = None,
     ) -> AnalysisResult:
-        vector = validate_vector(features)
+        from infrastructure.monitoring.timer import TimingCollector
+
+        timer = TimingCollector("end_to_end").start()
+
+        with timer.stage("input_validation"):
+            vector = validate_vector(features)
         rid = request_id or str(uuid.uuid4())
         active_session = session or self.session
 
@@ -76,17 +81,22 @@ class AnalysisService:
                     )
 
         # Scientific feature extraction and model inference
-        malware_score, shap = self.model.infer(vector)
-        shap_views = self.view_map.split(shap)
-        contrib = view_contributions(shap_views)
-        signals = {
-            "m1": m1_tadr(shap),
-            "m2": 0.0,
-            "m3": m3_view_concentration(contrib),
-            "m4": 0.0,
-            "m5": 0.0,
-        }
-        suspicion = demo_fusion(signals)
+        with timer.stage("model"):
+            malware_score, shap = self.model.infer(vector)
+
+        with timer.stage("signals"):
+            shap_views = self.view_map.split(shap)
+            contrib = view_contributions(shap_views)
+            signals = {
+                "m1": m1_tadr(shap),
+                "m2": 0.0,
+                "m3": m3_view_concentration(contrib),
+                "m4": 0.0,
+                "m5": 0.0,
+            }
+
+        with timer.stage("fusion"):
+            suspicion = demo_fusion(signals)
 
         # Map to canonical verdict
         if suspicion >= 0.35 or malware_score >= 0.85:
@@ -104,6 +114,17 @@ class AnalysisService:
         vector_bytes = json.dumps(rounded_floats, separators=(",", ":")).encode("utf-8")
         input_digest = hashlib.sha256(vector_bytes).hexdigest()
         now_utc = datetime.now(UTC).isoformat()
+
+        # Stop timer to produce exact measured latency breakdown
+        timer.stop()
+        timings = timer.to_dict(include_total_as="end_to_end")
+        measured_latency_ms = {
+            "end_to_end": max(0.001, timings.get("end_to_end", 0.001)),
+            "model": max(0.001, timings.get("model", 0.001)),
+            "signals": max(0.001, timings.get("signals", 0.001)),
+            "fusion": max(0.001, timings.get("fusion", 0.001)),
+            "input_validation": max(0.001, timings.get("input_validation", 0.001)),
+        }
 
         # Build 19-field CanonicalEvidence dataclass
         canonical_ev = CanonicalEvidence(
@@ -124,40 +145,65 @@ class AnalysisService:
             fusion_score=suspicion,
             threshold_id="THRESH-V3-DEFAULT",
             decision=decision,
-            latency_ms={"end_to_end": 5.0, "model": 3.0, "signals": 1.5, "fusion": 0.5},
+            latency_ms=measured_latency_ms,
             demo_mode=self.demo_mode,
         ).with_hash()
+
+        # Telemetry observation (fail-safe)
+        try:
+            from infrastructure.monitoring.metrics import get_metrics_registry
+
+            reg = get_metrics_registry()
+            reg.histogram("detector_latency_ms").observe(measured_latency_ms["end_to_end"])
+            for stg in ("model", "signals", "fusion", "input_validation"):
+                reg.histogram("detector_stage_latency_ms").observe(
+                    measured_latency_ms[stg], labels={"stage": stg}
+                )
+            reg.counter("detector_requests_total").inc(
+                1.0,
+                labels={
+                    "decision": decision,
+                    "input_mode": "vector",
+                    "status": job_status,
+                },
+            )
+        except Exception:
+            pass
 
         persisted_job_id: str | None = None
 
         # Relational database persistence if active session exists
         if active_session is not None:
-            repo = CanonicalEvidenceRepository(active_session)
-            job, result_rec, scores, artifact, audit_event = repo.persist(
-                evidence=canonical_ev,
-                user_id=user_id,
-                auto_commit=False,
-            )
-            persisted_job_id = str(job.id)
-
-            # Generate alert if verdict warrants notification
-            if decision in ("ALERT", "QUARANTINE"):
-                alert_severity = "critical" if decision == "QUARANTINE" else "high"
-                reason_msg = (
-                    f"Detector verdict: {decision} "
-                    f"(fusion_score: {suspicion:.4f}, malware_score: {malware_score:.4f})"
+            try:
+                repo = CanonicalEvidenceRepository(active_session)
+                job, result_rec, scores, artifact, audit_event = repo.persist(
+                    evidence=canonical_ev,
+                    user_id=user_id,
+                    auto_commit=False,
                 )
-                alert = Alert(
-                    id=uuid.uuid4(),
-                    analysis_job_id=job.id,
-                    severity=alert_severity,
-                    status="open",
-                    reason=reason_msg,
-                    created_at=datetime.now(UTC),
-                )
-                active_session.add(alert)
+                persisted_job_id = str(job.id)
 
-            active_session.commit()
+                # Generate alert if verdict warrants notification
+                if decision in ("ALERT", "QUARANTINE"):
+                    alert_severity = "critical" if decision == "QUARANTINE" else "high"
+                    reason_msg = (
+                        f"Detector verdict: {decision} "
+                        f"(fusion_score: {suspicion:.4f}, malware_score: {malware_score:.4f})"
+                    )
+                    alert = Alert(
+                        id=uuid.uuid4(),
+                        analysis_job_id=job.id,
+                        severity=alert_severity,
+                        status="open",
+                        reason=reason_msg,
+                        created_at=datetime.now(UTC),
+                    )
+                    active_session.add(alert)
+
+                active_session.commit()
+            except Exception:
+                active_session.rollback()
+                raise
 
         # Build domain result
         result = AnalysisResult(

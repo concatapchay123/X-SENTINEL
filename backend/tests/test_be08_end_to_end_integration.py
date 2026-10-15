@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
 import uuid
+from datetime import UTC, datetime
+from pathlib import Path
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
 from x_sentinel.audit.evidence import CanonicalEvidence
 from x_sentinel.audit.manager import AuditEvidenceManager
-from x_sentinel.audit.writer import AuditWriter
 from x_sentinel.config import settings
 from x_sentinel.data.views import load_view_map
 from x_sentinel.database.base import Base
+from x_sentinel.database.models import AnalysisJob
 from x_sentinel.database.repositories.evidence import CanonicalEvidenceRepository
 from x_sentinel.detection.pipeline import DetectorPipeline
 from x_sentinel.fusion import (
@@ -22,9 +22,6 @@ from x_sentinel.fusion import (
     load_fusion_config,
 )
 from x_sentinel.model.demo import DemoModelService
-
-
-from x_sentinel.database.models import AnalysisJob
 
 
 def _is_db_connected() -> bool:
@@ -95,7 +92,7 @@ class TestEndToEndEvidenceLifecycle:
 
         req_id = f"REQ-E2E-{uuid.uuid4()}"
         run_id = f"RUN-E2E-{uuid.uuid4()}"
-        timestamp_str = datetime.now(timezone.utc).isoformat()
+        timestamp_str = datetime.now(UTC).isoformat()
 
         # Step 3: Construct CanonicalEvidence
         canonical_evidence = CanonicalEvidence(
@@ -152,7 +149,7 @@ class TestEndToEndEvidenceLifecycle:
         engine = create_engine(settings.database_url)
         req_id = f"REQ-LIVE-E2E-{uuid.uuid4()}"
         run_id = f"RUN-LIVE-E2E-{uuid.uuid4()}"
-        timestamp_str = datetime.now(timezone.utc).isoformat()
+        timestamp_str = datetime.now(UTC).isoformat()
 
         canonical_evidence = CanonicalEvidence(
             request_id=req_id,

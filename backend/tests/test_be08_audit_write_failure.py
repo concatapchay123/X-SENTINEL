@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from unittest.mock import MagicMock
-import uuid
+
 import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
-
 from x_sentinel.audit.evidence import CanonicalEvidence
 from x_sentinel.audit.manager import AuditEvidenceManager
 from x_sentinel.audit.writer import AuditWriteFailureError, AuditWriter

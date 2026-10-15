@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from x_sentinel.evaluation.metrics import (
     ZeroEligibleSamplesError,
