@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import struct
 import uuid
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -53,9 +54,9 @@ def test_strict_numeric_vector_validation():
         VectorAnalysisRequest(features=bool_vector)
 
     # String is strictly rejected (not coerced to 1.25)
-    str_vector = ["1.25"] + [0.0] * 2380  # type: ignore[list-item]
+    str_vector = ["1.25"] + [0.0] * 2380
     with pytest.raises(ValidationError):
-        VectorAnalysisRequest(features=str_vector)
+        VectorAnalysisRequest(features=str_vector)  # type: ignore[arg-type]
 
     # Dimension mismatch (2380 instead of 2381) is rejected
     short_vector = [0.0] * 2380
@@ -84,12 +85,12 @@ def test_no_destructive_prefix_deletion(tmp_path):
         Alert.__table__,
         AuditEvent.__table__,
     ):
-        for col in table.columns:
+        for col in cast(Any, table.columns):
             if col.server_default is not None and hasattr(col.server_default, "arg"):
                 text_str = str(col.server_default.arg)
                 if "N'" in text_str:
                     col.server_default.arg.text = text_str.replace("N'", "'")
-        table.create(engine)
+        cast(Any, table).create(engine)
 
     from pathlib import Path
     svc = AnalysisService(
@@ -118,7 +119,7 @@ def test_no_destructive_prefix_deletion(tmp_path):
         assert job_after.id == job_id_before
 
 
-def test_audit_file_failure_resilience(tmp_path):
+def test_audit_file_failure_resilience(tmp_path, monkeypatch):
     """F05: When file-based audit append fails, the DB transaction must succeed safely without crash."""
     engine = create_engine(
         "sqlite:///:memory:",
@@ -139,12 +140,12 @@ def test_audit_file_failure_resilience(tmp_path):
         Alert.__table__,
         AuditEvent.__table__,
     ):
-        for col in table.columns:
+        for col in cast(Any, table.columns):
             if col.server_default is not None and hasattr(col.server_default, "arg"):
                 text_str = str(col.server_default.arg)
                 if "N'" in text_str:
                     col.server_default.arg.text = text_str.replace("N'", "'")
-        table.create(engine)
+        cast(Any, table).create(engine)
 
     from pathlib import Path
     svc = AnalysisService(
@@ -153,7 +154,7 @@ def test_audit_file_failure_resilience(tmp_path):
         demo_mode=True,
     )
     # Mock audit writer to raise IOError
-    svc.audit.append = MagicMock(side_effect=OSError("Simulated read-only disk failure"))
+    monkeypatch.setattr(svc.audit, "append", MagicMock(side_effect=OSError("Simulated read-only disk failure")))
 
     rid = f"req-audit-fail-{uuid.uuid4()}"
     with Session(engine) as session:

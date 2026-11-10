@@ -45,7 +45,9 @@ def is_reparse_point(path: Path) -> bool:
         st = path.lstat()
         if path.is_symlink():
             return True
-        if hasattr(st, "st_file_attributes") and (st.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT):
+        reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+        file_attrs = getattr(st, "st_file_attributes", 0)
+        if file_attrs & reparse_flag:
             return True
         return False
     except Exception:

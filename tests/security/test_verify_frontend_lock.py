@@ -19,6 +19,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from scripts.verify_frontend_lock import (
     compute_sha256,
@@ -274,7 +275,7 @@ def test_adversarial_forbidden_directory_detection():
         forbidden.mkdir(parents=True)
         (forbidden / "rogue.vue").write_text("<template></template>", encoding="utf-8")
 
-        mock_manifest = {"locked_files": []}
+        mock_manifest: dict[str, list[Any]] = {"locked_files": []}
         mock_manifest_path = tmp_p / "manifest.json"
         mock_manifest_path.write_text(json.dumps(mock_manifest), encoding="utf-8")
 
@@ -308,7 +309,7 @@ def test_adversarial_forbidden_empty_directory_detection():
         forbidden = mock_root / "docs" / "frontend"
         forbidden.mkdir(parents=True)
 
-        mock_manifest = {"locked_files": []}
+        mock_manifest: dict[str, list[Any]] = {"locked_files": []}
         mock_manifest_path = tmp_p / "manifest.json"
         mock_manifest_path.write_text(json.dumps(mock_manifest), encoding="utf-8")
 
@@ -344,7 +345,7 @@ def test_adversarial_rogue_fe_plan_outside_plans_frontend():
         rogue_plan = plans_dir / "PLAN-FE-99-ROGUE.md"
         rogue_plan.write_text("# Rogue Plan", encoding="utf-8")
 
-        mock_manifest = {"locked_files": []}
+        mock_manifest: dict[str, list[Any]] = {"locked_files": []}
         mock_manifest_path = tmp_p / "manifest.json"
         mock_manifest_path.write_text(json.dumps(mock_manifest), encoding="utf-8")
 

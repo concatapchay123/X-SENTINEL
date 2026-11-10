@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
+from typing import Any, cast
 
 import pytest
 from fastapi import HTTPException
@@ -74,6 +75,7 @@ def test_production_rejects_predefined_tokens(monkeypatch):
         get_current_user(creds)
 
     assert exc_info.value.status_code == 401
+    assert isinstance(exc_info.value.detail, dict)
     assert exc_info.value.detail["code"] == "XS_INVALID_CREDENTIALS"
 
 
@@ -90,16 +92,16 @@ def test_alert_ownership_idor_prevented():
             col.type = Integer()
 
     for table in (User.__table__, AnalysisJob.__table__, Alert.__table__, AuditEvent.__table__):
-        for col in table.columns:
+        for col in cast(Any, table.columns):
             if col.server_default is not None and hasattr(col.server_default, "arg"):
                 text_str = str(col.server_default.arg)
                 if "N'" in text_str:
                     col.server_default.arg.text = text_str.replace("N'", "'")
 
-    User.__table__.create(engine)
-    AnalysisJob.__table__.create(engine)
-    Alert.__table__.create(engine)
-    AuditEvent.__table__.create(engine)
+    cast(Any, User.__table__).create(engine)
+    cast(Any, AnalysisJob.__table__).create(engine)
+    cast(Any, Alert.__table__).create(engine)
+    cast(Any, AuditEvent.__table__).create(engine)
 
     user_a_id = uuid.uuid4()
     user_b_id = uuid.uuid4()
@@ -158,6 +160,7 @@ def test_alert_ownership_idor_prevented():
         with pytest.raises(ObjectAccessDeniedError) as exc_get:
             alert_svc.get_alert(session=session, alert_id=alert_a.id, user=analyst_b)
         assert exc_get.value.status_code == 403
+        assert isinstance(exc_get.value.detail, dict)
         assert exc_get.value.detail["code"] == "XS_FORBIDDEN"
 
         # 3. Analyst B attempts update_alert_status for alert_a -> raises 403 XS_FORBIDDEN
@@ -169,6 +172,7 @@ def test_alert_ownership_idor_prevented():
                 user=analyst_b,
             )
         assert exc_patch.value.status_code == 403
+        assert isinstance(exc_patch.value.detail, dict)
         assert exc_patch.value.detail["code"] == "XS_FORBIDDEN"
 
         # 4. Admin user can successfully view and update alert_a

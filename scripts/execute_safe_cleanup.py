@@ -49,7 +49,9 @@ def validate_path(path: Path) -> tuple[bool, str]:
     while curr != PROJECT_ROOT:
         try:
             st = curr.lstat()
-            if curr.is_symlink() or (hasattr(st, "st_file_attributes") and (st.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT)):
+            reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+            file_attrs = getattr(st, "st_file_attributes", 0)
+            if curr.is_symlink() or (file_attrs & reparse_flag):
                 return False, f"Reparse point detected at {curr}"
         except Exception as e:
             return False, f"Stat check failed at {curr}: {e}"

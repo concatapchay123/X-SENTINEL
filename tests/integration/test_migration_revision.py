@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 
 import pytest
 from sqlalchemy import create_engine, text
@@ -29,6 +30,6 @@ def test_database_revision_matches_expected() -> None:
     assert _db_url is not None
     engine = create_engine(_db_url)
     with engine.connect() as conn:
-        current = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+        current: Any = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
     assert current == os.getenv("XS_EXPECTED_DB_REVISION", "0002_v3_jev_ai_audit")

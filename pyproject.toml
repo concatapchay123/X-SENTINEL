@@ -89,5 +89,7 @@ module = [
   "pyodbc.*",
   "yaml.*",
   "psutil.*",
+  "lief.*",
+  "lief",
 ]
 ignore_missing_imports = true

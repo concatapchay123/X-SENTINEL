@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from typing import Any
 
 import pyodbc
 import pytest
@@ -106,7 +107,7 @@ def test_live_migration_upgrade_downgrade_cycle() -> None:
 
         engine = create_engine(test_db_url)
         with engine.connect() as c:
-            v = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+            v: Any = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             assert v == "0001_v2_multiuser"
             assert not _table_exists(c, "jev_ai_runs")
             assert _table_exists(c, "users")
@@ -118,7 +119,7 @@ def test_live_migration_upgrade_downgrade_cycle() -> None:
 
         engine = create_engine(test_db_url)
         with engine.connect() as c:
-            v = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+            v: Any = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             assert v == "0002_v3_jev_ai_audit"
             assert _table_exists(c, "jev_ai_runs")
             assert _table_exists(c, "jev_ai_feedback")
@@ -129,7 +130,7 @@ def test_live_migration_upgrade_downgrade_cycle() -> None:
 
         engine = create_engine(test_db_url)
         with engine.connect() as c:
-            v = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+            v: Any = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             assert v == "0001_v2_multiuser"
             assert not _table_exists(c, "jev_ai_runs")
             assert not _table_exists(c, "jev_ai_feedback")
@@ -141,7 +142,7 @@ def test_live_migration_upgrade_downgrade_cycle() -> None:
 
         engine = create_engine(test_db_url)
         with engine.connect() as c:
-            v = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+            v: Any = c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             assert v == "0002_v3_jev_ai_audit"
             assert _table_exists(c, "jev_ai_runs")
             assert _table_exists(c, "jev_ai_feedback")
