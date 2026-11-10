@@ -5,6 +5,7 @@
 *.sh text eol=lf
 
 # Source code and configuration files
+configs/m5_rules.json text eol=crlf
 *.py text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
