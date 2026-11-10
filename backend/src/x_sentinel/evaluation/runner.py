@@ -915,7 +915,16 @@ def verify_run_artifacts(run_dir: Path) -> dict[str, Any]:
             continue
         expected_digest, fname = parts[0].strip(), parts[1].strip()
         expected_map[fname] = expected_digest
-        actual_digest = _sha256_file(run_path / fname)
+        target_file = run_path / fname
+        actual_digest = _sha256_file(target_file)
+        if actual_digest != expected_digest and target_file.is_file():
+            # Tolerate cross-platform text line-ending differences (CRLF <-> LF)
+            raw = target_file.read_bytes()
+            if (
+                hashlib.sha256(raw.replace(b"\n", b"\r\n")).hexdigest() == expected_digest
+                or hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == expected_digest
+            ):
+                actual_digest = expected_digest
         if actual_digest != expected_digest:
             mismatched_files.append(fname)
 

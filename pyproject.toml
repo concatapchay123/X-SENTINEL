@@ -25,6 +25,7 @@ dependencies = [
   "pyodbc>=5.0,<6",
   "psycopg[binary]>=3.2,<4",
   "psutil>=6.0,<7",
+  "lief>=0.14,<2",
 ]
 
 
