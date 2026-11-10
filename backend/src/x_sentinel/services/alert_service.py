@@ -5,7 +5,6 @@ import uuid
 from sqlalchemy.orm import Session
 
 from x_sentinel.api.schemas import AlertSummary
-from x_sentinel.config import settings
 from x_sentinel.database.models import Alert, AnalysisJob, AuditEvent
 from x_sentinel.database.repositories.alert import AlertRepository
 from x_sentinel.security.auth import (
