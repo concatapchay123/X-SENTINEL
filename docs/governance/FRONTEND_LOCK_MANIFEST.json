@@ -284,9 +284,9 @@
       "relative_path": "infrastructure/docker/frontend.Dockerfile",
       "category": "frontend_container",
       "description": "Docker container definition for Streamlit frontend runtime",
-      "size_bytes": 640,
+      "size_bytes": 633,
       "line_count": 24,
-      "sha256": "f55d9314eb9013c773fcc220e28ef2e69ff19460e24af85d277cf4613bd83117"
+      "sha256": "5e623afb58395ee76ec32a1fa0a6d9ef51cf00e9b63a59b45e8cf91f60955f16"
     }
   ]
 }

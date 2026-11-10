@@ -6,11 +6,11 @@ RUN groupadd -g 10001 appgroup && \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
+RUN pip install --no-cache-dir "streamlit>=1.39,<2" "httpx>=0.27,<1"
+
 COPY frontend ./frontend
 
-RUN pip install --no-cache-dir ".[ui]" && \
-    chown -R appuser:appgroup /app
+RUN chown -R appuser:appgroup /app
 
 ENV PYTHONUNBUFFERED="1"
 
