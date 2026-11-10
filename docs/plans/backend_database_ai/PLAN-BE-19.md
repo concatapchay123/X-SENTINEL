@@ -50,3 +50,22 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `BE-20` (Acceptance, Evidence Pack & Handover).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_WITH_LIMITATIONS` (Technical & Safety Verified / Production API Fail-Closed Gated)
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/data/raw_pe.py`
+  - `backend/src/x_sentinel/data/__init__.py`
+  - `tests/fixtures/synthetic_pe.py`
+  - `backend/src/x_sentinel/api/routes.py`
+- **Associated Test Suites:**
+  - `backend/tests/test_raw_pe_no_execution.py`
+  - `backend/tests/test_raw_pe_malformed.py`
+  - `backend/tests/test_raw_pe_equivalence.py`
+  - `tests/security/test_raw_pe_disabled.py` (50 passed across Raw PE suites)
+- **Empirical Artifacts:**
+  - Synthetic PE fixtures (`tests/fixtures/synthetic_pe.py`)
+- **Operational Boundaries & Verified Limitations:**
+  - Invariant 14 strictly enforced: `POST /v1/analyze/file` returns HTTP 501 (`XS_FEATURE_DISABLED`) due to LIEF 1.0 vs 0.9 library drift. Production ingestion exclusively supports pre-extracted 2,381-dimensional EMBER vectors until Phase 2 equivalence sign-off.

@@ -1,0 +1,230 @@
+{
+  "total_files": 4253,
+  "total_dirs": 432,
+  "total_size_bytes": 20053482854,
+  "temp_cache_files_count": 3328,
+  "temp_cache_size_bytes": 155677941,
+  "build_artifact_files_count": 0,
+  "build_artifact_size_bytes": 0,
+  "duplicate_groups_count": 2,
+  "reparse_violations_count": 0,
+  "dir_stats": {
+    "(root)": {
+      "count": 13,
+      "size": 112606
+    },
+    ".agents": {
+      "count": 366,
+      "size": 2319149
+    },
+    ".git": {
+      "count": 68,
+      "size": 1986962
+    },
+    ".github": {
+      "count": 1,
+      "size": 2621
+    },
+    ".mypy_cache": {
+      "count": 3166,
+      "size": 152405638
+    },
+    ".pytest_cache": {
+      "count": 4,
+      "size": 124059
+    },
+    ".ruff_cache": {
+      "count": 9,
+      "size": 7277
+    },
+    "artifacts": {
+      "count": 57,
+      "size": 5971167
+    },
+    "backend": {
+      "count": 229,
+      "size": 3838216
+    },
+    "configs": {
+      "count": 11,
+      "size": 8884
+    },
+    "database": {
+      "count": 18,
+      "size": 68592
+    },
+    "datasets": {
+      "count": 16,
+      "size": 19879810091
+    },
+    "docs": {
+      "count": 200,
+      "size": 5004023
+    },
+    "frontend": {
+      "count": 2,
+      "size": 2812
+    },
+    "infrastructure": {
+      "count": 16,
+      "size": 97884
+    },
+    "models": {
+      "count": 1,
+      "size": 116
+    },
+    "sample_data": {
+      "count": 2,
+      "size": 12047
+    },
+    "scripts": {
+      "count": 21,
+      "size": 170474
+    },
+    "source_materials": {
+      "count": 3,
+      "size": 961459
+    },
+    "tests": {
+      "count": 50,
+      "size": 578777
+    }
+  },
+  "ext_stats": {
+    "(no_ext)": {
+      "count": 70,
+      "size": 325593
+    },
+    ".example": {
+      "count": 1,
+      "size": 1793
+    },
+    ".md": {
+      "count": 572,
+      "size": 3666216
+    },
+    ".yml": {
+      "count": 2,
+      "size": 6129
+    },
+    ".json": {
+      "count": 3201,
+      "size": 156444708
+    },
+    ".toml": {
+      "count": 1,
+      "size": 1964
+    },
+    ".txt": {
+      "count": 3,
+      "size": 127361871
+    },
+    ".py": {
+      "count": 171,
+      "size": 1618369
+    },
+    ".sample": {
+      "count": 14,
+      "size": 26788
+    },
+    ".idx": {
+      "count": 1,
+      "size": 26300
+    },
+    ".pack": {
+      "count": 1,
+      "size": 1738146
+    },
+    ".rev": {
+      "count": 1,
+      "size": 3656
+    },
+    ".tag": {
+      "count": 3,
+      "size": 427
+    },
+    ".jsonl": {
+      "count": 20,
+      "size": 9951714223
+    },
+    ".sha256": {
+      "count": 11,
+      "size": 2750
+    },
+    ".pyc": {
+      "count": 149,
+      "size": 3140967
+    },
+    ".yaml": {
+      "count": 12,
+      "size": 66271
+    },
+    ".ini": {
+      "count": 1,
+      "size": 672
+    },
+    ".mako": {
+      "count": 1,
+      "size": 592
+    },
+    ".sql": {
+      "count": 2,
+      "size": 12843
+    },
+    ".sh": {
+      "count": 6,
+      "size": 2516
+    },
+    ".npz": {
+      "count": 1,
+      "size": 261557445
+    },
+    ".csv": {
+      "count": 2,
+      "size": 16825555
+    },
+    ".dat": {
+      "count": 4,
+      "size": 9528000000
+    },
+    ".dockerfile": {
+      "count": 2,
+      "size": 2474
+    },
+    ".docx": {
+      "count": 1,
+      "size": 934586
+    }
+  },
+  "duplicate_groups": {
+    "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b": [
+      {
+        "rel_path": "artifacts/.gitkeep",
+        "size": 1,
+        "git": "TRACKED"
+      },
+      {
+        "rel_path": "backend/src/x_sentinel/api/__init__.py",
+        "size": 1,
+        "git": "TRACKED"
+      }
+    ],
+    "148b67cd2723bd0d35d9ab21f44c49d9c5fb71dc2519560d91b2fdd3b9a7c3ef": [
+      {
+        "rel_path": "artifacts/evaluation/be14_candidate_suite/e2_pooled_seed42/raw_predictions.jsonl",
+        "size": 58233,
+        "git": "TRACKED"
+      },
+      {
+        "rel_path": "artifacts/evaluation/be14_candidate_suite/e4_ablation_seed42/raw_predictions.jsonl",
+        "size": 58233,
+        "git": "TRACKED"
+      },
+      {
+        "rel_path": "artifacts/evaluation/be14_candidate_suite/e5_fpr_latency_seed42/raw_predictions.jsonl",
+        "size": 58233,
+        "git": "TRACKED"
+      }
+    ]
+  }
+}

@@ -18,7 +18,7 @@ from x_sentinel.security.policy import (
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-    from x_sentinel.database.models import AnalysisJob
+    from x_sentinel.database.models import Alert, AnalysisJob
 
 
 class Role(StrEnum):
@@ -110,9 +110,9 @@ PREDEFINED_TOKENS: dict[str, AuthUser] = {
 
 # Default unauthenticated identity when auth is disabled
 ANONYMOUS_USER = AuthUser(
-    user_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
+    user_id=uuid.UUID("00000000-0000-0000-0000-000000000000"),
     email="anonymous@xsentinel.local",
-    roles=(Role.ADMIN.value, Role.ANALYST.value, Role.OPERATOR.value, Role.EVALUATOR.value),
+    roles=(),
 )
 
 http_bearer_scheme = HTTPBearer(auto_error=False)
@@ -121,15 +121,9 @@ http_bearer_scheme = HTTPBearer(auto_error=False)
 def get_current_user_optional(
     credentials: HTTPAuthorizationCredentials | None = Security(http_bearer_scheme),
 ) -> AuthUser | None:
-    """Returns the authenticated user, or ANONYMOUS_USER if auth is disabled.
-
-    When settings.api_auth_mode == 'none', returns ANONYMOUS_USER without requiring credentials.
-    When auth is enabled:
-      - If credentials are missing, returns None (optional auth).
-      - If credentials are valid, returns the corresponding AuthUser.
-      - If user is inactive, raises HTTP 403 XS_FORBIDDEN.
-      - If credentials are invalid, raises HTTP 401 XS_INVALID_CREDENTIALS.
-    """
+    """Returns the authenticated user, or None/ANONYMOUS_USER according to policy."""
+    if settings.env == "production" and settings.api_auth_mode == "none":
+        return None
     if settings.api_auth_mode == "none":
         return ANONYMOUS_USER
 
@@ -138,25 +132,14 @@ def get_current_user_optional(
 
     token = credentials.credentials.strip()
     if token in PREDEFINED_TOKENS:
+        if settings.env == "production" and not settings.allow_predefined_tokens:
+            return None
         user = PREDEFINED_TOKENS[token]
         if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail={
-                    "code": "XS_FORBIDDEN",
-                    "message": "Authenticated user account is inactive",
-                },
-            )
+            return None
         return user
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail={
-            "code": "XS_INVALID_CREDENTIALS",
-            "message": "Invalid or expired authentication credentials",
-        },
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    return None
 
 
 def get_current_user(
@@ -164,12 +147,22 @@ def get_current_user(
 ) -> AuthUser:
     """Enforces authentication according to settings.api_auth_mode.
 
-    When settings.api_auth_mode == 'none', returns ANONYMOUS_USER.
+    When settings.api_auth_mode == 'none':
+      - In production: strictly rejected (HTTP 401 XS_UNAUTHENTICATED)
+      - In development/test: returns ANONYMOUS_USER
     When settings.api_auth_mode != 'none', requires valid credentials:
+      - Predefined tokens strictly rejected in production unless allow_predefined_tokens=True
       - Missing credentials -> 401 XS_UNAUTHENTICATED
       - Invalid credentials -> 401 XS_INVALID_CREDENTIALS
       - Inactive account -> 403 XS_FORBIDDEN
     """
+    if settings.env == "production" and settings.api_auth_mode == "none":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"code": "XS_UNAUTHENTICATED", "message": "Unauthenticated access is strictly forbidden in production"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     if settings.api_auth_mode == "none":
         return ANONYMOUS_USER
 
@@ -182,6 +175,15 @@ def get_current_user(
 
     token = credentials.credentials.strip()
     if token in PREDEFINED_TOKENS:
+        if settings.env == "production" and not settings.allow_predefined_tokens:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={
+                    "code": "XS_INVALID_CREDENTIALS",
+                    "message": "Predefined test tokens are strictly prohibited in production",
+                },
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         user = PREDEFINED_TOKENS[token]
         if not user.is_active:
             raise HTTPException(
@@ -268,12 +270,56 @@ def require_permissions(*required_permissions: Permission | str):
 
 
 def is_admin(user: AuthUser | None) -> bool:
-    """Checks whether principal is admin or running in unauthenticated development mode."""
-    if settings.api_auth_mode == "none" or user is None:
-        return True
+    """Checks whether principal is an administrator (Default Deny)."""
+    if user is None:
+        return False
     if user.user_id == ANONYMOUS_USER.user_id:
-        return True
+        return False
     return user.has_role(Role.ADMIN.value)
+
+
+def assert_alert_ownership(
+    alert: Alert,
+    user: AuthUser | None,
+    session: Session,
+    *,
+    resource_label: str = "alert record",
+) -> None:
+    """Verifies object-level ownership of an Alert via its associated AnalysisJob.
+
+    Admins can access any alert.
+    Non-admin users can only access alerts tied to analysis jobs they own.
+    """
+    if is_admin(user):
+        return
+
+    # In dev mode, unauthenticated ANONYMOUS_USER is permitted for local smoke testing
+    if settings.env != "production" and (user is None or user.user_id == ANONYMOUS_USER.user_id):
+        if settings.api_auth_mode == "none":
+            return
+
+    if user is None or user.user_id == ANONYMOUS_USER.user_id:
+        raise ObjectAccessDeniedError(
+            message=f"Access denied: unauthenticated access to {resource_label}",
+            code="XS_FORBIDDEN",
+        )
+
+    from x_sentinel.database.models import AnalysisJob
+
+    job = session.get(AnalysisJob, alert.analysis_job_id)
+    if job is None:
+        if settings.env != "production":
+            return
+        raise ObjectAccessDeniedError(
+            message=f"Access denied: parent analysis record for {resource_label} not found",
+            code="XS_FORBIDDEN",
+        )
+
+    if job.user_id is not None and job.user_id != user.user_id:
+        raise ObjectAccessDeniedError(
+            message=f"Access denied: {resource_label} belongs to another user's analysis",
+            code="XS_FORBIDDEN",
+        )
 
 
 def assert_job_ownership(

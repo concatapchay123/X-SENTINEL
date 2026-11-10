@@ -37,3 +37,25 @@ Run SE/SC gates, Jev operational acceptance and package reproducible handover.
 ## Done definition
 
 No silent TBDs, no undocumented schema/API changes, 993/993 tests pass (100% green), outputs are traceable to versioned config/code, and formal sign-off checklist is prepared in `docs/handover/SIGNOFF_CHECKLIST.md`.
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_WITH_LIMITATIONS` (Technical Readiness PASS / Experimental Readiness PASS / Scientific & Production Readiness CONDITIONAL PASS)
+- **Exact Source File Paths:**
+  - `docs/handover/` (12 authoritative handover documents)
+  - `SHA256SUMS.txt`
+  - `scripts/generate_sha256sums.py`
+  - `scripts/verify_sha256sums.py`
+  - `scripts/verify_scientific_reproducibility.py`
+- **Associated Test Suites:**
+  - Full test suite (`pytest`, 993 passed in 78.56s)
+  - Release gates (10/10 green)
+  - SHA-256 verification (459 entries verified, 0 mismatches)
+- **Empirical Artifacts:**
+  - `SHA256SUMS.txt`
+  - `docs/handover/BE01_BE19_ACCEPTANCE_MATRIX.md`
+  - `docs/handover/SE_SC_ACCEPTANCE_MATRIX.md`
+  - `docs/handover/SIGNOFF_CHECKLIST.md`
+- **Operational Boundaries & Verified Limitations:**
+  - 4-tier release readiness verdict: Technical Readiness PASS, Experimental Readiness PASS, Scientific Readiness CONDITIONAL PASS (fail-closed on OQ-01, OQ-02, poisoned models), Production Readiness CONDITIONAL PASS (Raw PE 501 gated; external SQL Server required for multi-user).

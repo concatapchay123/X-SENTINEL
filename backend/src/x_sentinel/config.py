@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     db_pool_recycle_seconds: int = 1800
 
     api_auth_mode: str = "none"
+    allow_predefined_tokens: bool = False
     allowed_origins: str = "http://localhost:8501"
     max_upload_bytes: int = 52_428_800
 
@@ -147,6 +148,20 @@ class Settings(BaseSettings):
         if not (0.0 <= v <= 1.0):
             raise ValueError(f"Ratio metric must be between 0.0 and 1.0; got {v}")
         return v
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> Settings:
+        if self.env == "production":
+            if self.api_auth_mode == "none":
+                raise ValueError(
+                    "Production environment strictly forbids api_auth_mode='none'. "
+                    "Authentication is required (e.g. 'bearer')."
+                )
+            if self.allow_predefined_tokens:
+                raise ValueError(
+                    "Production environment strictly forbids allow_predefined_tokens=True."
+                )
+        return self
 
     @model_validator(mode="after")
     def validate_jev_ai_local_endpoint(self) -> Settings:

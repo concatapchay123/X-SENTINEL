@@ -41,3 +41,20 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `BE-06` (M1–M5 Detector Core).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_WITH_LIMITATIONS` (Candidate Model Verified / Strict Scientific Promotion Gated)
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/model/lightgbm_service.py`
+  - `backend/src/x_sentinel/model/shap_service.py`
+  - `backend/src/x_sentinel/model/demo.py`
+  - `configs/model.ember2018.yaml`
+- **Associated Test Suites:**
+  - `backend/tests/test_be05_lightgbm_shap_service.py` (30 passed)
+- **Empirical Artifacts:**
+  - `configs/model.ember2018.yaml` (SHA-256 `509de4a8...`)
+  - `datasets/ember2018/ember_model_2018.txt`
+- **Operational Boundaries & Verified Limitations:**
+  - `OQ-02` blocker: Promotion to `model.scientific.yaml` is gated pending formal freeze (`expected_sha256: TBD`). Operational model uses EMBER2018 booster (`datasets/ember2018/ember_model_2018.txt`, SHA-256 `509de4a8...`). TreeSHAP execution incurs ~1.2s CPU latency per file; fast-path available without TreeSHAP (~35-41ms).

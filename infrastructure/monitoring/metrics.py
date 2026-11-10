@@ -32,6 +32,9 @@ FORBIDDEN_LABEL_KEYS = frozenset(
 )
 
 
+MAX_METRIC_SERIES_LIMIT = 500
+
+
 class MetricType(StrEnum):
     COUNTER = "counter"
     GAUGE = "gauge"
@@ -80,6 +83,8 @@ class Counter:
         clean_lbl = _validate_label_dict(labels)
         key = frozenset(clean_lbl.items())
         with self._lock:
+            if key not in self._values and len(self._values) >= MAX_METRIC_SERIES_LIMIT:
+                key = frozenset([("endpoint", "overflow"), ("status_code", "overflow")])
             self._values[key] = self._values.get(key, 0.0) + amount
 
     def get(self, labels: dict[str, str] | None = None) -> float:
@@ -129,6 +134,8 @@ class Gauge:
         clean_lbl = _validate_label_dict(labels)
         key = frozenset(clean_lbl.items())
         with self._lock:
+            if key not in self._values and len(self._values) >= MAX_METRIC_SERIES_LIMIT:
+                key = frozenset([("endpoint", "overflow"), ("status_code", "overflow")])
             self._values[key] = self._values.get(key, 0.0) + amount
 
     def dec(self, amount: float = 1.0, labels: dict[str, str] | None = None) -> None:
@@ -199,6 +206,8 @@ class Histogram:
         key = frozenset(clean_lbl.items())
 
         with self._lock:
+            if key not in self._series and len(self._series) >= MAX_METRIC_SERIES_LIMIT:
+                key = frozenset([("endpoint", "overflow"), ("status_code", "overflow")])
             if key not in self._series:
                 b_map = {b: 0 for b in self.buckets}
                 b_map[float("inf")] = 0

@@ -24,3 +24,4 @@ dist/
 *.egg-info/
 datasets/*
 !datasets/.gitkeep
+.agents/

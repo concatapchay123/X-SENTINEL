@@ -72,3 +72,25 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `BE-08` (Audit, Evidence & Artifact Contracts).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_WITH_LIMITATIONS` (Algorithm & Engine Verified / D1 Recalibration Pending)
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/fusion/__init__.py`
+  - `backend/src/x_sentinel/fusion/config.py`
+  - `backend/src/x_sentinel/fusion/calibration.py`
+  - `backend/src/x_sentinel/fusion/engine.py`
+  - `backend/src/x_sentinel/fusion/decision.py`
+  - `backend/src/x_sentinel/fusion/golden_cases.py`
+- **Associated Test Suites:**
+  - `backend/tests/test_be07_calibration.py`
+  - `backend/tests/test_be07_decision_golden_cases.py`
+  - `backend/tests/test_be07_fusion_engine.py`
+  - `backend/tests/test_be07_integration.py`
+  - `backend/tests/test_be07_threshold_provenance.py` (72 passed across BE-07 suite)
+- **Empirical Artifacts:**
+  - `artifacts/calibration/d1_calibration.json`
+- **Operational Boundaries & Verified Limitations:**
+  - `LIM-SCI-05`: Candidate D1 calibration threshold ($\tau = 0.46885$) exhibits FPR divergence on held-out test partition; recalibration on an expanded 1,000-sample benign partition required prior to production operational deployment.

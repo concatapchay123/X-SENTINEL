@@ -1,0 +1,917 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "manifest_name": "X-SENTINEL V3 Repository Changes Manifest",
+  "version": "7.1.0",
+  "generated_at": "2026-10-16T00:05:00Z",
+  "finalized_at": "2026-10-16T08:25:00Z",
+  "current_round": 7,
+  "current_stage": "Stage E (Final Master Audit Reports Finalization & Consensus Worker)",
+  "auditor": "Worker Round 1 Stage C/E, Worker Round 2 Stage C/E, Worker Round 3 Stage A (Author), Reviewer Round 3 Stage B (Reviewer), Worker Round 3 Stage C (Author & Manifests), Challenger Round 3 Stage D (Adversarial Challenger), Worker Round 3 Stage E (Remediation & Finalization Worker), Worker Round 3 Stage E3 (Sanitization & Verification Worker), Worker Round 4 Stage A (Scientific ML Verification Worker), Reviewer Round 4 Stage B (Scientific ML Test Reviewer), Worker Round 4 Stage C (Scientific ML Audit Reports Author), Challenger Round 4 Stage D (Adversarial Scientific ML Challenger), Worker Round 4 Stage E (Scientific ML Audit Reports Finalization & Consensus Worker), Worker Round 5 Stage A (Database, API & Resilience Verification Worker), Reviewer Round 5 Stage B (Database & API Test Suite Reviewer), Worker Round 5 Stage C (Database, API & Resilience Audit Reports Author), Challenger Round 5 Stage D (Adversarial Database, API & Resilience Challenger), Worker Round 5 Stage E (Database, API & Resilience Reports Finalization & Consensus Worker), Worker Round 6 Stage A (Technical Verification Worker), Reviewer Round 6 Stage B (Independent Reviewer & Adversarial Critic), Worker Round 6 Stage C (Authoring & Verification Worker), Challenger Round 6 Stage D (Adversarial Performance & Deployment Challenger), Worker Round 6 Stage E (Performance & Deployment Reports Finalization & Consensus Worker), Worker Round 7 Stage A (Technical Baseline & Checksum Verification Worker), Reviewer Round 7 Stage B (Independent Red Team Reviewer & Adversarial Critic), Worker Round 7 Stage C (Final Master Audit Reports & Manifests Author), Challenger Round 7 Stage D (Adversarial Red Team Challenger), Worker Round 7 Stage E (Final Master Audit Reports Finalization & Consensus Worker)",
+  "project_root": "F:\\IAM302t",
+  "change_summary": "Round 1: Restoration of 24 deleted legacy V2 plan files (PLAN-01.md through PLAN-24.md) under docs/plans/legacy_v2/ from Git HEAD commit bb92eff, resolving baseline audit defect. Round 2: Authoring, adversarial verification, and finalization of 3 comprehensive production-grade audit reports for BE-04 (Feature Schema & Semantic Views), BE-05 (LightGBM & TreeSHAP Model Service), and BE-06 (M1–M5 Mathematical Detector Core) under docs/audits/full_be01_be20_final/ at Version 2.0.0. Round 3: Finalization and cryptographic registration of 4 comprehensive production-grade audit reports for BE-10 (Jev AI LM Studio Runtime Client), BE-11 (Jev AI Context Builder & Data Contract), BE-12 / BE-12.5 (Jev AI Orchestration, Guardrails & Adversarial Penetration Suite), and BE-15 (Security, Server-Side RBAC & Blind Isolation) under docs/audits/full_be01_be20_final/ at Version 2.0.0, incorporating Challenger Stage D adversarial fuzzing telemetry, Stage E3 complete sanitization of residual unwhitelisted documentation quotations across .agents/teamwork/, backed by 298/298 passed security tests, 0 repository secret findings, and 993/993 passed repository regression tests. Round 4: Authoring, adversarial challenge, finalization, and cryptographic registration of 3 comprehensive production-grade audit reports for BE-07 (Score Fusion, Calibration & Decision Engine), BE-14 (Threat Simulation E0–E5 & Statistical Evaluation), and BE-19 (Raw PE Ingestion, LIEF Static Parsing & Safety Gate) under docs/audits/full_be01_be20_final/ at Version 2.0.0, incorporating Challenger Stage D adversarial fuzzing telemetry (signal validation bounds, D1 rank index proofs, Wilson 95% CIs, golden cases agreement, McNemar exact/continuity-corrected branching, DeLong midranks, Holm-Bonferroni correction, malformed PE buffer fuzzing, 50MB bounds, Invariant 14 HTTP 501 gate, and Invariant 01 zero execution AST proof), unanimous 5-agent consensus attestations, backed by 158/158 passed scientific ML tests across 10 test modules, 0 repository secret findings, and verified fail-closed invariants (Invariants 01, 13, 14). Round 5: Authoring, verification, adversarial stress-testing, finalization, and cryptographic registration of 4 comprehensive production-grade audit reports for BE-08 (Evidence Ledger & Integrity), BE-09 (Core REST API, History & Alerts), BE-13 (Jev AI Persistence & Decoupled Transactions), and BE-16 (Test System, Fault Injection, Integration & Resilience) under docs/audits/full_be01_be20_final/ at Version 2.0.0, incorporating Challenger Stage D adversarial telemetry (22/22 malformed vectors failed closed, 19/19 single-field bit-flips detected, atomic rollback on flush failure with 0 orphaned rows, Invariant 14 gate verified across 4 PE buffers, alert state machine terminal rewinds blocked with HTTP 400, tampered evidence hashes rejected with HTTP 409, Invariant 10 decoupled transactions verified with session.in_transaction() == False, duplicate feedback rejected with HTTP 409, rating bounds [1, 5] enforced with HTTP 422, non-terminal run feedback rejected with HTTP 409, 7/7 prompt injection vectors blocked with HTTP 422, 7 fault subsystems deterministically verified, 4-thread concurrency collision safety with 0 duplicate rows, single Alembic head 0002_v3_jev_ai_audit, and 0 schema drift across 13 tables), unanimous 5-agent consensus attestations, registered in CHANGES_MANIFEST.json Version 5.1.0 across 38 files, backed by 197/197 passed targeted tests, 0 repository secret findings, and 993/993 passed repository regression tests. Round 6: Finalization, empirical benchmarking, adversarial challenge, and cryptographic registration of 2 comprehensive production-grade audit reports for BE-17 (Performance & Observability) and BE-18 (Docker, CI & Deployment) under docs/audits/full_be01_be20_final/ at Version 2.0.0. Verified NFR-002 latency SLA (<50ms P50, <150ms P95) with E0 clean latency P50=3.43ms and E5 threat latency P50=3.47-3.53ms (>14x headroom); sub-millisecond fusion engine (0.003ms); concurrency budget limiter load shedding (3 admitted, 7 rejected in 10-thread burst; 3 admitted, 47 rejected in 50-thread burst; 15 admitted, 130 queue_full, 5 queue_timeout in 150-thread overload with 0 permit leaks); percentile estimator monotonicity (P50 <= P95 <= P99 <= P99.9 <= P99.995 <= P100.0) and fail-closed boundary rejection across 9 poisoned vectors; authentic psutil OS telemetry (32 logical cores, 31.73 GB RAM, RSS 209.82MB); Jev AI stage timings (context: 0.55ms, validation: 0.35ms, persistence: 1.25ms) and live LM Studio benchmark on http://localhost:1234/v1 with jev-style-qwen3.5-2b-decision@q8_0 (P50: 2559.63ms); fail-closed AI isolation (detector score and verdict bit-for-bit identical across 3 catastrophic AI outages); multi-stage Docker build with non-root UID 10001 appuser, /health and /ready probes; database migration gate (scripts/migration_gate.py) verified at single head 0002_v3_jev_ai_audit and 13 canonical tables with 5 adversarial fail-closed suites; cryptographic release tuple binding (sha256:51de9a7f9a1d12ea641c40012a2c32959f695d9b283a3e16b27cc1ab42320b45) with config and migration tamper detection; 10/10 unified release gates passed; GitHub Actions CI/CD automation (.github/workflows/ci.yml); repository cleanup safety verified with zero collisions against 166 Class C protected files; zero exposed secrets; zero symlinks; zero NT reparse points; unanimous 5-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D); and 69/69 passed targeted tests across 10 test modules, backed by 993/993 passed repository regression tests in 74.20s. Round 7: Final independent red team audit and release readiness for BE-20 handover package. Remediated Reviewer Stage B Finding 1 in scripts/generate_sha256sums.py by excluding mutable runtime artifact directories (artifacts/audit, artifacts/release, artifacts/performance) from SHA256SUMS.txt. Challenged by Challenger Stage D which identified that running scripts/release_gate.py dynamically mutates docs/release/RELEASE_CHECKLIST.md with a UTC timestamp, causing verify_sha256sums.py to fail-closed with 1 mismatch. Worker Stage E remediated the finding by excluding docs/release in scripts/generate_sha256sums.py, achieving 459 verified cryptographic checksum entries in SHA256SUMS.txt with zero post-test and post-gate mismatches and passing negative verification tests. Finalized all 5 Final Master Audit Reports under docs/audits/full_be01_be20_final/ to Version 2.0.0 (Final Consensus Edition): BE20_ACCEPTANCE_HANDOVER_AUDIT.md, CROSS_PLAN_INTEGRATION_REPORT.md, REQUIREMENTS_TRACEABILITY_MATRIX.md, DEFECT_REGISTER.md (documenting closure of DEF-012), and EXECUTIVE_AUDIT_REPORT.md, with full 5-agent unanimous consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D). Synchronized CHANGES_MANIFEST.json and CLEANUP_MANIFEST.json to Version 7.1.0, completing registration of all 48 canonical audit and plan artifacts with exact on-disk byte sizes and SHA-256 digests. Verified full regression test suite (993 passed in 78.56s), scientific reproducibility (11/11 candidate runs verified with zero drift), master release gate (10/10 gates green), secret scan (0 exposed credentials), and Requirement R1 filesystem safety (0 symlinks, 0 NT reparse points).",
+  "round_1_remediation": {
+    "source_commit": {
+      "commit_hash": "bb92eff",
+      "full_hash": "bb92effa3f4e1f72b22596e1b747db383d47ad40",
+      "subject": "feat(release): complete PLAN-BE-20 acceptance, evidence pack & handover",
+      "origin_commit": "e228824d3b8d8e64bc66c41afc2db8e9a5564e2b",
+      "restoration_command": "git checkout HEAD -- docs/plans/legacy_v2"
+    },
+    "verification_status": {
+      "git_diff_result": "0 differences against HEAD",
+      "git_status_result": "clean (docs/plans/legacy_v2/ unmodified)",
+      "baseline_audit_result": "PASS (24 legacy plans accounted for)",
+      "baseline_test_result": "PASS (backend/tests/test_be01_environment_config.py::test_baseline_audit_and_validation_scripts PASSED)",
+      "repository_test_suite": "993 passed, 0 failed, 0 skipped",
+      "challenger_stage_d_adversarial_result": "PASS (10/10 fail-closed stress cases, 993 tests in 111.33s, 0 symlinks, 0 reparse points)",
+      "stage_e_consensus_verdict": "APPROVE (Unanimous multi-agent sign-off)"
+    },
+    "reports_count": 1,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE01_BE03_FOUNDATION_AUDIT.md",
+        "task": "BE-01..03",
+        "subsystem": "Foundation, Baseline Configuration, Database & Health Probes",
+        "size_bytes": 36972,
+        "sha256": "bd608df819e3729f850c0981d4074a87ce00d861815a726f989dbb17a7c54559",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 1.1.0/2.0.0 technical audit of foundational environment configuration, SQLAlchemy database connectivity, Alembic schema migrations, and authentic psutil service health telemetry, 29/29 tests passed, and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      }
+    ]
+  },
+  "round_2_detector_audit": {
+    "subsystems_audited": [
+      "BE-04: Domain Schema & Semantic Views",
+      "BE-05: LightGBM & TreeSHAP Model Service",
+      "BE-06: M1–M5 Mathematical Detector Core"
+    ],
+    "verification_status": {
+      "be04_test_result": "49 passed, 0 failed, 0 skipped in 3.32s; 12 boundary fuzzing vectors passed",
+      "be05_test_result": "31 passed, 0 failed, 0 skipped in 31.61s; 14-distribution extreme vector TreeSHAP stress passed",
+      "be06_test_result": "109 passed, 0 failed, 0 skipped across 6 suites in 4.68s; M1–M5 boundary stability passed",
+      "total_round_2_tests": "189 passed, 0 failed, 0 skipped (100% pass rate in 34.80s - 35.21s)",
+      "full_repository_regression": "993 passed, 0 failed, 0 skipped in 78.17s (100% pass rate)",
+      "demo_view_mapping_sha256": "276be235642b655efab3b8e2bd26af0dde4617ccac0d4d63195c636ee408b5cb (EXACT MATCH)",
+      "ember2018_booster_sha256": "509de4a83e2d76b69fb3025ced0429e5f40f6a95ca40122b9eedd03317fff5e2 (EXACT MATCH)",
+      "m5_pe_rules_sha256": "2e8c599aa9fded31c8d27eb0d96f45743a087572f696bc8e3bdb0f69d5ca184d (EXACT MATCH, 8 RULES)",
+      "treeshap_additivity_max_residual": "1.026e-13 <= 1.0e-04 across 14 distributions (VERIFIED)",
+      "oq01_fail_closed": "PASS (RuntimeError raised on configs/views.scientific.yaml)",
+      "oq02_fail_closed": "PASS (ModelConfigUnresolvedError raised on configs/model.scientific.yaml)",
+      "invariant_05_zero_ai_dependency": "PASS (Air-gapped execution verified under blocked socket.connect and socket.create_connection)",
+      "r1_safety_boundary": "PASS (0 symlinks, 0 NT reparse points in .agents/teamwork/ and docs/audits/)",
+      "multi_agent_consensus": "UNANIMOUS (Worker Stage A, Reviewer Stage B, Worker Stage C, Challenger Stage D, Worker Stage E)"
+    },
+    "reports_count": 3,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE04_FEATURE_SCHEMA_AUDIT.md",
+        "task": "BE-04",
+        "subsystem": "Domain Schema & Semantic Views",
+        "size_bytes": 31416,
+        "sha256": "34ba73945b18c1f607aa761ffa76d519d54da04ada8a3d60daa38660401c6a9d",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of 2,381 float vector schema, strict non-numeric/boolean/NaN/Inf rejection, view partitioning, canonical demo hash 276be..., fail-closed handling of OQ-01, Challenger Stage D boundary fuzzing data (lengths 0, 1, 2380, 2381, 2382, 5000; subnormal 5e-324; type confusion), and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE05_MODEL_SHAP_AUDIT.md",
+        "task": "BE-05",
+        "subsystem": "LightGBM & TreeSHAP Model Service",
+        "size_bytes": 29423,
+        "sha256": "75aa6d8cf9db146cd26f63a8396b59b548f71d54de860773fe0e289f73c21159",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of official EMBER 2018 booster artifact 509de..., TreeSHAP local attribution additivity axiom across Challenger Stage D 14-distribution extreme vector suite (max residual 1.026e-13 << 1e-4), strict demo vs. scientific segregation, fail-closed handling of OQ-02, and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE06_DETECTOR_CORE_AUDIT.md",
+        "task": "BE-06",
+        "subsystem": "M1–M5 Mathematical Detector Core",
+        "size_bytes": 29427,
+        "sha256": "b684d6f1379e7c0c0bf2c552d9e89af0129de9525ed116893e4b73843c7c33fa",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of M1 TADR (eps=1e-12), M2 STRIP (N=16, alpha=0.2), M3 View Concentration, M4 Symmetric Cross-View Disagreement (0.5 sum |yi-yj|), M5 Semantic Plausibility (rules hash 2e8c5... across 8 rules), Challenger Stage D boundary stability data, proof of Invariant 05 (zero AI dependency under socket blocking), and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      }
+    ]
+  },
+  "round_3_security_audit": {
+    "subsystems_audited": [
+      "BE-10: Jev AI LM Studio Runtime Client",
+      "BE-11: Jev AI Context Builder & Data Contract",
+      "BE-12 & BE-12.5: Jev AI Orchestration, Guardrails & Adversarial Penetration",
+      "BE-15: Security, Server-Side RBAC & Blind Isolation"
+    ],
+    "verification_status": {
+      "be10_test_result": "29 passed, 0 failed, 0 skipped in 2.15s (100% pass rate)",
+      "be11_test_result": "101 passed, 0 failed, 0 skipped in 0.85s (100% pass rate)",
+      "be12_test_result": "55 passed, 0 failed, 0 skipped in 19.82s (100% pass rate)",
+      "be12_5_adversarial_result": "84 passed, 0 failed, 0 skipped in 0.97s (100% pass rate, 1,105 lines of red-team audit)",
+      "be15_test_result": "29 passed, 0 failed, 0 skipped in 4.40s (100% pass rate)",
+      "total_round_3_tests": "298 passed, 0 failed, 0 skipped in 23.65s (100% pass rate)",
+      "secret_scan_result": "PASS (0 exposed production credentials across full repository)",
+      "invariant_08_loopback_binding": "PASS (Strict localhost, 127.0.0.1, host.docker.internal host validation; 18/19 hostile URLs blocked)",
+      "invariant_09_zero_network_disabled": "PASS (0 network calls when XS_JEV_AI_ENABLED=false; 0 sockets created under socket monkeypatching)",
+      "invariant_03_advisory_only": "PASS (Immutable advisory_only: True, 22/22 authority claims suppressed)",
+      "invariant_02_blind_custody": "PASS (10/10 forbidden keys blocked, 8/8 blind data payloads blocked, 11/11 path traversal vectors blocked)",
+      "invariant_07_server_rbac": "PASS (Server-side RBAC, IDOR/BOLA assert_job_ownership cross-user rejection HTTP 403 enforced)",
+      "r1_safety_boundary": "PASS (0 symlinks, 0 NT reparse points in .agents/teamwork/ and docs/audits/)",
+      "challenger_stage_d_adversarial_result": "PASS (18/19 hostile URLs blocked, Invariant 09 zero-egress verified under socket monkeypatching, 10/10 forbidden keys blocked, 8/8 blind data payloads blocked, 30k char size cap verified, 10/11 injection payloads blocked, 22/22 authority claims blocked, 1,105-line adversarial penetration suite passed 84/84 in 1.00s, IDOR cross-user access rejected 403, 11/11 path traversal vectors blocked, least-privilege T-SQL DENY UPDATE/DELETE verified)",
+      "stage_e_remediation": "PASS (Sanitized unmasked example password in BE-11 doc line 193; full repository secret scan 0 findings, 29/29 blind RBAC tests passed, full 993/993 regression tests passed)",
+      "stage_e3_remediation": "PASS (Sanitized residual retrospective documentation diffs across .agents/teamwork/; full repository secret scan verified 0 findings, 29/29 blind RBAC tests passed, 298/298 security tests passed, full 993/993 regression passed)",
+      "multi_agent_consensus": "UNANIMOUS (Worker Round 3 Stage A, Reviewer Round 3 Stage B, Worker Round 3 Stage C, Challenger Round 3 Stage D, Worker Round 3 Stage E, Worker Round 3 Stage E3)"
+    },
+    "reports_count": 4,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE10_JEV_RUNTIME_CLIENT_AUDIT.md",
+        "task": "BE-10",
+        "subsystem": "Jev AI LM Studio Runtime Client",
+        "size_bytes": 22942,
+        "sha256": "659f17586ff3f85abb3e3246efc2febcb9637400012eec5c6b9e377de86601dd",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of Jev AI LM Studio runtime client: OpenAI-compatible endpoint contracts (/v1/chat/completions, /v1/models), strict loopback host validation (localhost, 127.0.0.1, host.docker.internal), Challenger Stage D hostile URL fuzzing (18/19 blocked), Invariant 09 zero network calls when disabled verified via socket monkeypatching, typed exception hierarchy, timeout enforcement, and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE11_CONTEXT_BUILDER_AUDIT.md",
+        "task": "BE-11",
+        "subsystem": "Jev AI Context Builder & Data Contract",
+        "size_bytes": 21261,
+        "sha256": "191e99b912dd271229e82799be85ff052fe4850205b1b52f3e55c123b561bf38",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of Jev AI context builder and data contract: authoritative default-deny allowlist projection (apply_allowlist), Challenger Stage D forbidden key fuzzing (10/10 blocked), blind data isolation (8/8 blocked across structured keys and text), recursive secret redaction with sanitized documentation examples (0 secret scanner findings), 30,000 char context ceiling over RFC 8785 canonical JSON, SHA-256 context digest, and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE12_ORCHESTRATOR_GUARD_AUDIT.md",
+        "task": "BE-12 / BE-12.5",
+        "subsystem": "Jev AI Orchestration, Guardrails & Adversarial Penetration",
+        "size_bytes": 28849,
+        "sha256": "aad8873c93b7a9c6c1c02c003e82a4be85c8742d2021d12b1f96ccd06772e6d0",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of Jev AI orchestration, guardrails, and adversarial penetration suite: 4 core advisory workflows (Explain, Triage, Compare, Report), single-token anchor prompt formatting (Answer:), numerically stable logprob softmax normalization and greedy consistency, Challenger Stage D prompt injection fuzzing (10/11 blocked), authority claim suppression (22/22 blocked), immutable advisory_only: True, full 1,105-line adversarial penetration audit (84/84 passed in 1.00s across 8 defect classes), and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE15_RBAC_SECURITY_AUDIT.md",
+        "task": "BE-15",
+        "subsystem": "Security, Server-Side RBAC & Blind Isolation",
+        "size_bytes": 21251,
+        "sha256": "93ae5aa56e07ae7238cf0bed45172f09d7ef73c29aed1781dada90d28d89ab84",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of server-side security, RBAC, and blind isolation: canonical permission matrix in policy.py, object-level ownership validation (assert_job_ownership) with Challenger Stage D cross-user IDOR/BOLA rejection (HTTP 403), automated repository secret scan with 0 findings, blind custody path traversal defense (11/11 blocked), T-SQL least-privilege roles with DENY UPDATE, DELETE directives, and formal multi-agent consensus attestations.",
+        "integrity_match": true
+      }
+    ]
+  },
+  "round_4_scientific_ml_audit": {
+    "subsystems_audited": [
+      "BE-07: Multi-Detector Score Fusion, D0/D1 Empirical Quantile Calibration & Golden Decision Engine",
+      "BE-14: Clean-Label Threat Simulation E0–E5, Non-Parametric Statistics & Hypothesis Testing",
+      "BE-19: Raw PE Feature Extraction, LIEF Static Binary Analysis & Production Safety Gate"
+    ],
+    "verification_status": {
+      "be07_test_result": "72 passed, 0 failed, 0 skipped across 5 suites in 2.37s (100% pass rate); signal validation fuzzing passed; 8/8 golden cases matched",
+      "be14_test_result": "36 passed, 0 failed, 0 skipped in 2.84s (100% pass rate); McNemar zero-discordance and small/large sample branching verified; DeLong midranks verified",
+      "be19_test_result": "50 passed, 0 failed, 0 skipped across 4 suites in 3.37s (100% pass rate); malformed PE buffer fuzzing passed; 50MB bound passed",
+      "total_round_4_tests": "158 passed, 0 failed, 0 skipped in 3.98s - 4.16s (100% pass rate)",
+      "full_repository_regression": "993 passed, 0 failed, 0 skipped in 78.97s (100% pass rate)",
+      "secret_scan_result": "PASS (0 exposed production credentials across full repository)",
+      "invariant_01_zero_execution": "PASS (AST walk verifies 0 execution modules/calls in raw_pe.py; runtime denial mocks verified)",
+      "invariant_13_scientific_blocker": "PASS (check_scientific_readiness detects missing poisoned models in models/ and unfrozen OQ-01/OQ-02, raising ExperimentBlockedError under strict freeze)",
+      "invariant_14_raw_pe_gate": "PASS (RawPEFeatureExtractor default enabled=False raises FeatureGatedError inheriting NotImplementedError, preserving HTTP 501 XS_FEATURE_DISABLED)",
+      "d1_calibration_fpr_bound": "PASS (Rank index n - floor(target_fpr * n) guarantees empirical FPR <= target_fpr <= 0.01; exact Wilson score 95% CI verified)",
+      "mcnemar_delong_statistics": "PASS (Exact binomial and continuity-corrected McNemar with zero-discordant safe handling; DeLong paired AUROC midranks V10/V01 verified)",
+      "r1_safety_boundary": "PASS (0 symlinks, 0 NT reparse points across F:\\\\IAM302t)",
+      "challenger_stage_d_adversarial_result": "PASS (Signal validation bounds, D1 rank index proofs, Wilson CIs, golden cases agreement, McNemar branching, DeLong midranks, Holm-Bonferroni correction, malformed PE fuzzing, 50MB bounds, and Invariant 14 gate verified; APPROVE verdict issued)",
+      "multi_agent_consensus": "UNANIMOUS (Worker Round 4 Stage A, Reviewer Round 4 Stage B, Worker Round 4 Stage C, Challenger Round 4 Stage D, Worker Round 4 Stage E)"
+    },
+    "reports_count": 3,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE07_FUSION_CALIBRATION_AUDIT.md",
+        "task": "BE-07",
+        "subsystem": "Multi-Detector Score Fusion, D0/D1 Calibration & Decision Engine",
+        "size_bytes": 40488,
+        "sha256": "844c3082a7bc1f4b992bea9cc2309c2f7ce8b31bbf6cf2c200ed8e18185f0d07",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of multi-detector score fusion (convex combination, two-branch numerically stable logistic regression sigmoid, max signal anomaly), strict [0.0, 1.0] signal validation, D1 empirical quantile calibration rank index formula guaranteeing FPR <= 0.01, exact Wilson score 95% confidence intervals, 8 canonical golden decision cases (GOLDEN-01..08), fail-closed handling of missing D1 artifacts (CalibrationUnresolvedError / RuntimeError), Challenger Stage D adversarial fuzzing telemetry (signal domain bounds, sample size scaling n=10..1000, Wilson interval clamping, artifact checksum tamper detection), 72/72 tests passed, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE14_THREAT_SIMULATION_STATISTICS_AUDIT.md",
+        "task": "BE-14",
+        "subsystem": "Clean-Label Threat Simulation E0–E5 & Statistical Evaluation",
+        "size_bytes": 38484,
+        "sha256": "fd0d35ad38ff86eb78dc76e53c83d0f6fcc6e754812d1bd1213e13c348bd9362",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of clean-label backdoor threat simulation (THREAT_MODEL_SPEC), three trigger families (T-concentrated, T-spread, T-cross), hypothesis matrix (RQ1–RQ4 / H1–H4), non-parametric statistics (exact binomial and continuity-corrected McNemar with zero-discordant safe handling, DeLong paired AUROC midranks V10/V01, clustered bootstrap resampling, Holm-Bonferroni correction), Invariant 13 fail-closed blocker for missing poisoned models in models/ raising ExperimentBlockedError under strict scientific freeze, Challenger Stage D statistical fuzzing telemetry (exact binomial p=0.109375, continuity-corrected chi2=9.025, p=0.002663, zero discordance p=1.0, DeLong midranks V10/V01, Holm-Bonferroni step-down), 36/36 tests passed, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE19_RAW_PE_GATE_AUDIT.md",
+        "task": "BE-19",
+        "subsystem": "Raw PE Ingestion, LIEF Static Parsing & Safety Gate",
+        "size_bytes": 33521,
+        "sha256": "45d7014432d2c6321e039626fe9c4057d274199d4c4a725ba0014760bc27a281",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of static PE binary feature extraction via LIEF without binary execution, extracting exactly 2,381 canonical float features across 9 groups, AST verification and runtime execution denial mocks proving zero dynamic execution primitives, 50 MB bounded read limits and path traversal defenses, Invariant 14 baseline fail-closed gate raising FeatureGatedError (subclassing NotImplementedError, preserving HTTP 501 XS_FEATURE_DISABLED), Challenger Stage D malformed PE fuzzing telemetry (lengths 0..63, invalid DOS magic, corrupt e_lfanew, corrupt section table bounds, 50MB bounds, null bytes, traversal), 50/50 tests passed, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      }
+    ]
+  },
+  "restored_files_count": 24,
+  "restored_files": [
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-01.md",
+      "size_bytes": 4448,
+      "sha256": "f620805cb465d5bfe122ddd2b8e6bdd7959a30fe3268e375c053c798b69db414",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-02.md",
+      "size_bytes": 4392,
+      "sha256": "50c726a413ccd52141dfc00ff300053e1c5b039cdea8aa16b31608daa48deb91",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-03.md",
+      "size_bytes": 4359,
+      "sha256": "4c5490bba334aeeb81e0e8ca80c6b0100b06f3fcd69380505cb4fb053095ee74",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-04.md",
+      "size_bytes": 4400,
+      "sha256": "e38d6e0f812885e4cbe6201f802b4b5f79c10029f48a0963eb8e449fff12c534",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-05.md",
+      "size_bytes": 2617,
+      "sha256": "d04371a141cf878a732f89aa081fdb6334205839aaa3961691a58b8657d51ab7",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-06.md",
+      "size_bytes": 3092,
+      "sha256": "4c262f9aa2a73b990dd4a9df0cd1580bd1bd61e9252ba3c645eb271cdc32e4a8",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-07.md",
+      "size_bytes": 4356,
+      "sha256": "4393d8d427456382883cff60494a57ed8717551b33b4ef91750ce9ab93692c8b",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-08.md",
+      "size_bytes": 4410,
+      "sha256": "2b389a31c02c403f56a229dd9be43b5af4e96d67c55de0b5ed85b94b8fabbadb",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-09.md",
+      "size_bytes": 4470,
+      "sha256": "a7abeeaf83a6b0479e5904635462ac038c134ea32d0711e3bc1ed6961662ae90",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-10.md",
+      "size_bytes": 4309,
+      "sha256": "fd91d80fd6a0ec840138716e82d341e77d3b58f700730afe4f4b7a4cbd5ac294",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-11.md",
+      "size_bytes": 4390,
+      "sha256": "94fc012a907e89c54988c2709a365e4e7ae1ae7db812ba2237144b3518c6f4a9",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-12.md",
+      "size_bytes": 4338,
+      "sha256": "b71a1799768c66b14e09df3452c22ccbbff4c944f3d959fc1e34cdca8ba983f4",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-13.md",
+      "size_bytes": 5753,
+      "sha256": "09a7e8a4888a61647bcfd8cb6606aead1821a1dc4c43e4abf288e47e931fcbb5",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-14.md",
+      "size_bytes": 4359,
+      "sha256": "6d050fda149ff8d97ea40f9312458ef37ba50a7ec9014bb9748e26472d276d89",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-15.md",
+      "size_bytes": 5769,
+      "sha256": "bafebf6f43539805071267c1cab909ecf22908233bf7153e18ee23cb140bd452",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-16.md",
+      "size_bytes": 5736,
+      "sha256": "746228c1a6cc1546b61780ffeee7d15aa00cfa0dea1f566d113a9d8ec76c87af",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-17.md",
+      "size_bytes": 5706,
+      "sha256": "5378ceb0d223964069bc7e37bf04d78570afc3914549509d87907c7104d20369",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-18.md",
+      "size_bytes": 4397,
+      "sha256": "b84ad7c3d3c0793fac2d8285f7eb242a888792c8318c31532a126e1463417a01",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-19.md",
+      "size_bytes": 5726,
+      "sha256": "f2675192b997ea42c51c3ef391dff6f956fc18b63fe14710af0c1fb591883999",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-20.md",
+      "size_bytes": 5772,
+      "sha256": "f86f68c1e57174495cd4cd65bbe89f9e753efe100d1b9bdc651fc4599c424cc6",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-21.md",
+      "size_bytes": 5773,
+      "sha256": "65ca7212811d12d493bafff07df370b8ae78c9b9c57c89f896867525702d09eb",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-22.md",
+      "size_bytes": 5722,
+      "sha256": "22fb83acee2871ea6b8403696c6d815387a4c6f9fd6443935d2185bf5f77152f",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-23.md",
+      "size_bytes": 5782,
+      "sha256": "e17e4a09f81bde583ad2afe80d3fd36512f97873b11e9d050999ca5bab872500",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-24.md",
+      "size_bytes": 7034,
+      "sha256": "ef850a88bdb017fbc2b70bc4ec31a9b1a35dc34e2ebde917dca96a45a5ab2a25",
+      "status": "RESTORED_CLEAN",
+      "integrity_match": true
+    }
+  ],
+  "round_5_database_api_resilience_audit": {
+    "subsystems_audited": [
+      "BE-08: Canonical Evidence Ledger & RFC 8785 Integrity Hashing",
+      "BE-09: Core REST API, Analysis History & Security Alerts",
+      "BE-13: Jev AI Persistence, Decoupled Transactions & Analyst Feedback",
+      "BE-16: Test System, 7-Subsystem Fault Injection & Database Resilience"
+    ],
+    "verification_status": {
+      "be08_test_result": "46 passed, 0 failed, 0 skipped across 7 suites in 3.21s (100% pass rate); golden reference hash 994e7f813be6702d9d4def0d93edc47ff4dc1fd5249af19e65768d106a59594e verified; bit-flip tamper detection across 19 vectors verified; rollback on write failure verified with 0 orphaned rows",
+      "be09_test_result": "34 passed, 0 failed, 0 skipped across 4 suites in 4.64s (100% pass rate); OpenAPI 3.1.0 schema generation verified; pure headless architecture verified; Invariant 14 HTTP 501 file gate verified across 4 distinct buffers; alert lifecycle state transitions and terminal rewinds blocked verified",
+      "be13_test_result": "58 passed, 0 failed, 0 skipped in 7.35s (100% pass rate); Invariant 10 decoupled 2-phase transactions with session.in_transaction() == False verified; feedback validation, rating bounds [1, 5], duplicate rejection HTTP 409, non-terminal run check HTTP 409, and 7/7 prompt injections blocked verified",
+      "be16_test_result": "59 passed, 0 failed, 0 skipped across 4 suites in 4.24s (100% pass rate); 7-subsystem fault injection verified; multi-threaded concurrent duplicate submission rejection verified (0 duplicates out of 4 concurrent threads); 0 schema drift on 0002_v3_jev_ai_audit verified",
+      "total_round_5_tests": "197 passed, 0 failed, 0 skipped in 10.49s - 10.74s (100% pass rate)",
+      "schema_revision_result": "PASS (Single head 0002_v3_jev_ai_audit verified via scripts/check_schema_revision.py)",
+      "schema_drift_result": "PASS (0 differences across all 13 canonical tables verified via scripts/check_schema_drift.py)",
+      "secret_scan_result": "PASS (0 exposed production credentials across full repository)",
+      "invariant_04_evidence_immutability": "PASS (Canonical evidence 19 fields frozen dataclass, RFC 8785 JCS serialization, deterministic SHA-256 digest, read-back verify_integrity() verification)",
+      "invariant_06_pure_headless": "PASS (Zero HTML/Jinja templates, zero static files, application/json content negotiation, standardized error envelopes)",
+      "invariant_07_server_rbac": "PASS (Server-side RBAC token verification, object-level IDOR assertion assert_job_ownership, custom header forgery rejected)",
+      "invariant_10_decoupled_txns": "PASS (Phase 1 commit running -> external LM Studio HTTP request with 0 DB locks -> Phase 2 terminal commit)",
+      "invariant_14_raw_pe_gate": "PASS (POST /v1/analyze/file fail-closed HTTP 501 XS_FEATURE_DISABLED)",
+      "r1_safety_boundary": "PASS (0 symlinks, 0 NT reparse points across F:\\\\IAM302t)",
+      "multi_agent_consensus": "UNANIMOUS (Worker Round 5 Stage A, Reviewer Round 5 Stage B, Worker Round 5 Stage C, Challenger Round 5 Stage D, Worker Round 5 Stage E)",
+      "challenger_stage_d_adversarial_result": "PASS (22/22 malformed vectors failed closed, 19/19 single-field bit-flips detected, atomic rollback on flush failure with 0 orphaned rows, Invariant 14 gate verified across 4 PE buffers, alert terminal rewinds blocked, evidence tamper hash rejected, Invariant 10 decoupled transactions verified with session.in_transaction() == False, duplicate feedback rejected with HTTP 409, rating bounds [1, 5] enforced, non-terminal runs blocked with HTTP 409, 7/7 prompt injection vectors blocked, 7 fault subsystems deterministically verified, 4-thread concurrency collision safety with 0 duplicates, single head 0002_v3_jev_ai_audit, 0 schema drift across 13 tables; APPROVE verdict issued)"
+    },
+    "reports_count": 4,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE08_EVIDENCE_INTEGRITY_AUDIT.md",
+        "task": "BE-08",
+        "subsystem": "Canonical Evidence Ledger & RFC 8785 Integrity Hashing",
+        "size_bytes": 34244,
+        "sha256": "f99ec83a6dcff5de4dcc7eeb67873c33a325552f8a221fc6ba2c830b056c3514",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of canonical evidence ledger and RFC 8785 JSON Canonicalization Scheme (JCS): 19-field frozen dataclass schema (27_EVIDENCE_SCHEMA.md), deterministic SHA-256 evidence hashing matching golden reference hash 994e7f813be6702d9d4def0d93edc47ff4dc1fd5249af19e65768d106a59594e, Challenger Stage D telemetry (22/22 malformed vectors failed closed, 19/19 single-field bit-flips detected, atomic rollback on simulated database flush errors with 0 orphaned rows), scientific gate rejection on demo vectors, read-back immutability verification, 46/46 tests passed across 7 suites, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE09_API_CONTRACT_AUDIT.md",
+        "task": "BE-09",
+        "subsystem": "Core REST API, Analysis History & Security Alerts",
+        "size_bytes": 27471,
+        "sha256": "abbd90e248aa37b92cd4229695809f367a90d1816b0cf04ba6ed0d965bd75f41",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of core REST API contracts, history, and alerts: OpenAPI 3.1.0 specification compliance across 11 core endpoints in routes.py, pure headless architecture (INV-06) with zero HTML templates and zero static files, analysis job lifecycle state machine, alert lifecycle state machine with Challenger Stage D telemetry (terminal rewinds blocked with HTTP 400 XS_INVALID_TRANSITION), Invariant 14 baseline fail-closed raw PE gate verified across 4 distinct buffers (HTTP 501 XS_FEATURE_DISABLED), cryptographic evidence tamper rejection (HTTP 409 XS_EVIDENCE_INTEGRITY_MISMATCH), 34/34 tests passed across 4 suites, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE13_PERSISTENCE_FEEDBACK_AUDIT.md",
+        "task": "BE-13",
+        "subsystem": "Jev AI Persistence, Decoupled Transactions & Analyst Feedback",
+        "size_bytes": 31368,
+        "sha256": "5729829670d824eb3055c95315179bfe15208c237ec7a50c5e04399a3c5fb8af",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of Jev AI relational persistence, non-blocking transactions, and analyst feedback governance: relational tables jev_ai_runs and jev_ai_feedback under migration 0002_v3_jev_ai_audit, Invariant 10 decoupled 2-phase database transactions verified during external LM Studio HTTP calls with session.in_transaction() == False (Phase 1 commit running -> zero open DB transactions during HTTP request -> Phase 2 terminal commit), analyst feedback validation (rating range [1, 5], label whitelist, duplicate feedback rejection HTTP 409 XS_DUPLICATE_FEEDBACK, non-terminal run check HTTP 409 XS_AI_RUN_NOT_TERMINAL, 7/7 prompt injection vectors blocked with HTTP 422), 58/58 tests passed, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE16_TEST_SYSTEM_RESILIENCE_AUDIT.md",
+        "task": "BE-16",
+        "subsystem": "Test System, 7-Subsystem Fault Injection & Database Resilience",
+        "size_bytes": 30295,
+        "sha256": "fb69a182580b0709b6d15bc4b77a5b9f9f2c3b658780dce6a0f8f66ef06082a7",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of system resilience, fault injection framework, and schema migration integrity: deterministic fault injection framework across all 7 subsystems in fault_injection.py (database, model, audit writer, transport timeouts/502/malformed JSON, evidence tampering, concurrency limiter, and security deep audit), database resilience and foreign key cascading deletion validation, multi-threaded concurrency safety preventing duplicate request submissions (exactly 1 row persisted, 0 duplicate rows out of 4 concurrent colliding threads), schema migration integrity confirming single Alembic head 0002_v3_jev_ai_audit with 0 schema drift across all 13 canonical tables, 59/59 tests passed across 4 suites, and formal multi-agent consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      }
+    ]
+  },
+  "round_6_performance_deployment_audit": {
+    "subsystems_audited": [
+      "BE-17: Performance & Observability",
+      "BE-18: Docker, CI & Deployment"
+    ],
+    "verification_status": {
+      "be17_test_result": "43 passed, 1 warning in 3.65s (100% pass rate across 6 test modules); NFR-002 SLA (<50ms P50, <150ms P95) verified with E0 P50 3.4285ms and E5 P50 3.5285ms (>14x safety headroom); sub-millisecond fusion decision engine (0.0030ms); concurrency budget limiter load shedding verified (10-thread burst: 3 admitted, 7 rejected; 50-thread burst: 3 admitted, 47 rejected; 150-thread flood: 15 admitted, 130 queue_full, 5 queue_timeout with 0 permit leaks); percentile estimator monotonicity (P50 <= P95 <= P99 <= P99.9 <= P99.995 <= P100.0) and fail-closed boundary rejection across 9 poisoned vectors; authentic psutil OS telemetry verified (32 logical cores, 31.73 GB RAM, RSS 209.82MB, zero synthetic constants); Jev AI stage timings verified (context 0.55ms, validation 0.35ms, persistence 1.25ms); live LM Studio benchmark on http://localhost:1234/v1 verified (P50 2559.63ms); fail-closed AI isolation verified (detector score and decision 100% unaltered during AI outages)",
+      "be18_test_result": "26 passed, 1 warning in 5.88s (100% pass rate across 4 test modules); multi-stage Docker build architecture with non-root UID 10001 appuser, libgomp1 OpenMP acceleration, ODBC drivers, and /health and /ready probes verified; database migration gate (scripts/migration_gate.py) verified at single head 0002_v3_jev_ai_audit with 13 canonical tables and backup protection, tested across 5 fail-closed adversarial scenarios; cryptographic release tuple binding verified (sha256:51de9a7f9a1d12ea641c40012a2c32959f695d9b283a3e16b27cc1ab42320b45) with config and revision tamper detection; 10/10 unified release gates passed 100% green; GitHub Actions CI pipeline (.github/workflows/ci.yml) verified; Class A/B/C cleanup rules verified with zero collisions against 166 Class C protected files",
+      "total_round_6_tests": "69 passed, 1 warning in 6.52s - 6.55s (100% pass rate across 10 test modules)",
+      "release_tuple_digest": "sha256:51de9a7f9a1d12ea641c40012a2c32959f695d9b283a3e16b27cc1ab42320b45 (EXACT MATCH)",
+      "release_checklist_status": "10 / 10 GATES PASSED (100% GREEN)",
+      "migration_head_result": "PASS (Single head 0002_v3_jev_ai_audit verified via scripts/migration_gate.py)",
+      "secret_scan_result": "PASS (0 exposed production credentials across full repository)",
+      "r1_safety_boundary": "PASS (0 symlinks, 0 NT reparse points across F:\\\\IAM302t)",
+      "multi_agent_consensus": "UNANIMOUS (Worker Round 6 Stage A, Reviewer Round 6 Stage B, Worker Round 6 Stage C, Challenger Round 6 Stage D, Worker Round 6 Stage E)",
+      "repository_regression_tests": "993 passed, 0 failed, 0 skipped in 74.20s (100% pass rate)"
+    },
+    "reports_count": 2,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE17_PERFORMANCE_OBSERVABILITY_AUDIT.md",
+        "task": "BE-17",
+        "subsystem": "Performance & Observability",
+        "size_bytes": 38531,
+        "sha256": "c717e253ff9797fccc68b87b2cb0b02d9808b6d363052ef6b4f67dbb64cf99c0",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of high-resolution performance, observability, and concurrency budgets: nanosecond monotonic timers (PreciseTimer, TimingCollector), exact percentile calculations via numpy.percentile(linear), NFR-002 SLA compliance (E0 clean P50 3.4285ms, E5 threat P50 3.5285ms vs <50ms SLA), sub-millisecond fusion engine (0.0030ms), concurrency budget limiter (ConcurrencyLimiter, ConcurrencyBudget) enforcing load shedding (3 admitted, 7 rejected in 10-thread burst; 15 admitted, 130 queue_full, 5 queue_timeout in 150-thread overload with 0 permit leaks), percentile estimator monotonicity and boundary fuzzing proofs, authentic OS telemetry via psutil (32 logical cores, 31.73 GB RAM, RSS 209.82MB, zero synthetic constants), Jev AI discrete stage timings (context: 0.55ms, validation: 0.35ms, persistence: 1.25ms) and live LM Studio benchmark on http://localhost:1234/v1 with jev-style-qwen3.5-2b-decision@q8_0 (P50 2559.63ms), fail-closed detector/AI isolation (detector score and verdict bit-for-bit identical across 3 catastrophic AI outages), 43/43 tests passed across 6 test modules, and formal 5-agent unanimous consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE18_DEPLOYMENT_RELEASE_AUDIT.md",
+        "task": "BE-18",
+        "subsystem": "Docker, CI & Deployment",
+        "size_bytes": 34004,
+        "sha256": "a70a4d007ba95d7c8b4f41e56c644d244b818f40e181f5faaf9ceae6c59c6426",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of container deployment, CI/CD, and release gating: multi-stage Docker builds on python:3.11-slim-bookworm executing as unprivileged non-root appuser (UID 10001, GID 10001) with OpenMP libgomp1 LightGBM acceleration and msodbcsql17/18 drivers, health and readiness probes (/ready and _stcore/health), 4-service Docker Compose topology on bridge network x_sentinel_network_v3 with resource limits and read-only volume mounts (:ro), database migration gate (scripts/migration_gate.py) enforcing single head 0002_v3_jev_ai_audit, 13 canonical tables, zero forbidden objects, pre-migration backup gate, and 5 fail-closed adversarial test scenarios, cryptographic release tuple binding (sha256:51de9a7f9a1d12ea641c40012a2c32959f695d9b283a3e16b27cc1ab42320b45) with tamper detection, 10-gate master release checklist (scripts/release_gate.py 10/10 PASS 100% green), GitHub Actions CI/CD workflow (.github/workflows/ci.yml), Requirement R1 cleanup safety verification against CLEANUP_MANIFEST.json with zero collisions across 166 Class C protected files, 26/26 tests passed across 4 test modules, and formal 5-agent unanimous consensus attestations (Worker Stages A/C/E, Reviewer Stage B, Challenger Stage D).",
+        "integrity_match": true
+      }
+    ]
+  },
+  "round_7_final_readiness_audit": {
+    "subsystems_audited": [
+      "BE-20: Acceptance, Evidence Pack & Handover",
+      "Cross-Plan Integration (BE-01 through BE-20)",
+      "Requirements Traceability Matrix (R1–R9, INV-01–14, NFR-001–007)",
+      "Master Defect Register (DEF-001 through DEF-012)",
+      "Executive Synthesis & Four-Tier Readiness Certification"
+    ],
+    "verification_status": {
+      "be20_test_result": "993 passed, 0 failed, 0 skipped in 78.56s (100% pass rate); 11/11 scientific reproducibility runs passed; 10/10 release gates green",
+      "finding_1_remediation": "PASS (Excluded mutable runtime directories artifacts/audit, release, performance, and docs/release in generate_sha256sums.py; SHA256SUMS.txt 459 entries verified with 0 mismatches after pytest and release gates)",
+      "challenger_stage_d_remediation": "PASS (DEF-012 closed; docs/release excluded from checksum manifest; post-gate verify_sha256sums.py verified 459 entries with 0 mismatches and exit code 0)",
+      "release_checklist_status": "10 / 10 GATES PASSED (100% GREEN)",
+      "migration_head_result": "PASS (Single head 0002_v3_jev_ai_audit verified via scripts/migration_gate.py with 0 schema drift across 13 tables)",
+      "secret_scan_result": "PASS (0 exposed production credentials across full repository via scripts/scan_secrets.py)",
+      "r1_safety_boundary": "PASS (0 symlinks, 0 NT reparse points across F:\\IAM302t)",
+      "multi_agent_consensus": "UNANIMOUS (Worker Round 7 Stage A, Reviewer Round 7 Stage B, Worker Round 7 Stage C, Challenger Round 7 Stage D, Worker Round 7 Stage E)"
+    },
+    "reports_count": 5,
+    "reports": [
+      {
+        "file_path": "docs/audits/full_be01_be20_final/BE20_ACCEPTANCE_HANDOVER_AUDIT.md",
+        "task": "BE-20",
+        "subsystem": "Acceptance, Evidence Pack & Handover",
+        "size_bytes": 20682,
+        "sha256": "752715b8e5926bba3fec3311f854c7bae3cb4e91bbae72409c8d819d1f504747",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 technical audit of BE-20 acceptance, evidence pack, SE/SC acceptance gates, operations and rollback runbooks, known limitations, full 993-test regression pass, and remediation of Finding 1 and Challenger Stage D finding in SHA256SUMS.txt with 459 verified cryptographic checksum entries and unanimous 5-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/CROSS_PLAN_INTEGRATION_REPORT.md",
+        "task": "BE-01..20",
+        "subsystem": "Cross-Plan Integration & Invariants Verification",
+        "size_bytes": 22618,
+        "sha256": "dd2bf70102fa3e0c905d1cdbfec95d5891bd18fc308ab22b361cb76fd3719b6f",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 cross-plan integration report across all 20 plans (BE-01 to BE-20), verifying unidirectional data flows, contract boundaries, Invariant 10 decoupled two-phase database transactions, Invariant 06 pure headless backend, complete adherence across Invariants 01 through 14, and unanimous 5-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/REQUIREMENTS_TRACEABILITY_MATRIX.md",
+        "task": "RTM",
+        "subsystem": "End-to-End Requirements Traceability",
+        "size_bytes": 16777,
+        "sha256": "37bbef002e21e2742c3473b4e03573633b66b8617059de8dfd119a2671253737",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 Requirements Traceability Matrix linking all 9 master requirements (R1–R9), 14 architectural invariants (INV-01–INV-14), and 7 non-functional requirements (NFR-001–NFR-007) to concrete production code, test suites, empirical outputs, 459 verified checksums, and unanimous 5-agent consensus attestations.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/DEFECT_REGISTER.md",
+        "task": "DEFECTS",
+        "subsystem": "Master Defect Register & Resolution Audit",
+        "size_bytes": 17985,
+        "sha256": "ed19214904514cd2ee353daa7d44f3c8fda3c5d2f689837a10a433f018ab787e",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 defect register cataloging all 12 defects across Rounds 1 through 7 (including Round 1 missing legacy plans, Round 3 unmasked doc secrets, Round 5 SQLite concurrency fixtures, Round 7 mutable checksum entries DEF-010, and Challenger Stage D dynamic release checklist mutation DEF-012), documenting root cause, remediation, and verification status with 100% resolution and unanimous 5-agent consensus.",
+        "integrity_match": true
+      },
+      {
+        "file_path": "docs/audits/full_be01_be20_final/EXECUTIVE_AUDIT_REPORT.md",
+        "task": "EXECUTIVE",
+        "subsystem": "Executive Synthesis & Release Certification",
+        "size_bytes": 16334,
+        "sha256": "cd7058da7e91480aef44f609fcff70eaf7c647c7ed3ee8e80f71b2120bb102c9",
+        "status": "FINALIZED_CONSENSUS_VERIFIED",
+        "description": "Finalized Version 2.0.0 high-level executive synthesis summarizing the entire 7-round multi-agent audit, certifying Technical Readiness (PASS), Experimental Readiness (PASS), Scientific Readiness (CONDITIONAL PASS / fail-closed freeze), Production Readiness (CONDITIONAL PASS / fail-closed Raw PE gate), and unanimous 5-agent consensus attestations.",
+        "integrity_match": true
+      }
+    ]
+  },
+  "master_file_registry_count": 48,
+  "master_file_registry": [
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE01_BE03_FOUNDATION_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 36972,
+      "sha256": "bd608df819e3729f850c0981d4074a87ce00d861815a726f989dbb17a7c54559",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE04_FEATURE_SCHEMA_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 31416,
+      "sha256": "34ba73945b18c1f607aa761ffa76d519d54da04ada8a3d60daa38660401c6a9d",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE05_MODEL_SHAP_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 29423,
+      "sha256": "75aa6d8cf9db146cd26f63a8396b59b548f71d54de860773fe0e289f73c21159",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE06_DETECTOR_CORE_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 29427,
+      "sha256": "b684d6f1379e7c0c0bf2c552d9e89af0129de9525ed116893e4b73843c7c33fa",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE07_FUSION_CALIBRATION_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 40488,
+      "sha256": "844c3082a7bc1f4b992bea9cc2309c2f7ce8b31bbf6cf2c200ed8e18185f0d07",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE08_EVIDENCE_INTEGRITY_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 34244,
+      "sha256": "f99ec83a6dcff5de4dcc7eeb67873c33a325552f8a221fc6ba2c830b056c3514",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE09_API_CONTRACT_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 27471,
+      "sha256": "abbd90e248aa37b92cd4229695809f367a90d1816b0cf04ba6ed0d965bd75f41",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE10_JEV_RUNTIME_CLIENT_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 22942,
+      "sha256": "659f17586ff3f85abb3e3246efc2febcb9637400012eec5c6b9e377de86601dd",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE11_CONTEXT_BUILDER_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 21261,
+      "sha256": "191e99b912dd271229e82799be85ff052fe4850205b1b52f3e55c123b561bf38",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE12_ORCHESTRATOR_GUARD_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 28849,
+      "sha256": "aad8873c93b7a9c6c1c02c003e82a4be85c8742d2021d12b1f96ccd06772e6d0",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE13_PERSISTENCE_FEEDBACK_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 31368,
+      "sha256": "5729829670d824eb3055c95315179bfe15208c237ec7a50c5e04399a3c5fb8af",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE14_THREAT_SIMULATION_STATISTICS_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 38484,
+      "sha256": "fd0d35ad38ff86eb78dc76e53c83d0f6fcc6e754812d1bd1213e13c348bd9362",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE15_RBAC_SECURITY_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 21251,
+      "sha256": "93ae5aa56e07ae7238cf0bed45172f09d7ef73c29aed1781dada90d28d89ab84",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE16_TEST_SYSTEM_RESILIENCE_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 30295,
+      "sha256": "fb69a182580b0709b6d15bc4b77a5b9f9f2c3b658780dce6a0f8f66ef06082a7",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE17_PERFORMANCE_OBSERVABILITY_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 38531,
+      "sha256": "c717e253ff9797fccc68b87b2cb0b02d9808b6d363052ef6b4f67dbb64cf99c0",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE18_DEPLOYMENT_RELEASE_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 34004,
+      "sha256": "a70a4d007ba95d7c8b4f41e56c644d244b818f40e181f5faaf9ceae6c59c6426",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE19_RAW_PE_GATE_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 33521,
+      "sha256": "45d7014432d2c6321e039626fe9c4057d274199d4c4a725ba0014760bc27a281",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/BE20_ACCEPTANCE_HANDOVER_AUDIT.md",
+      "category": "audit_report",
+      "size_bytes": 20682,
+      "sha256": "752715b8e5926bba3fec3311f854c7bae3cb4e91bbae72409c8d819d1f504747",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/CROSS_PLAN_INTEGRATION_REPORT.md",
+      "category": "audit_report",
+      "size_bytes": 22618,
+      "sha256": "dd2bf70102fa3e0c905d1cdbfec95d5891bd18fc308ab22b361cb76fd3719b6f",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/DEFECT_REGISTER.md",
+      "category": "audit_report",
+      "size_bytes": 17985,
+      "sha256": "ed19214904514cd2ee353daa7d44f3c8fda3c5d2f689837a10a433f018ab787e",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/EXECUTIVE_AUDIT_REPORT.md",
+      "category": "audit_report",
+      "size_bytes": 16334,
+      "sha256": "cd7058da7e91480aef44f609fcff70eaf7c647c7ed3ee8e80f71b2120bb102c9",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/REQUIREMENTS_TRACEABILITY_MATRIX.md",
+      "category": "audit_report",
+      "size_bytes": 16777,
+      "sha256": "37bbef002e21e2742c3473b4e03573633b66b8617059de8dfd119a2671253737",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/CLEANUP_MANIFEST.json",
+      "category": "manifest",
+      "size_bytes": 7369,
+      "sha256": "5aa65dfb5d0d7c3f82c894aa7e1508440c9bec2ee6ba5870571dff47c4804c86",
+      "status": "FINALIZED_VERIFIED"
+    },
+    {
+      "file_path": "docs/audits/full_be01_be20_final/CHANGES_MANIFEST.json",
+      "category": "manifest",
+      "size_bytes": "CALCULATED_ON_WRITE",
+      "sha256": "SELF_REFERENTIAL_MANIFEST_HASH",
+      "status": "CANONICAL_CHANGES_MANIFEST"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-01.md",
+      "category": "legacy_plan",
+      "size_bytes": 4448,
+      "sha256": "f620805cb465d5bfe122ddd2b8e6bdd7959a30fe3268e375c053c798b69db414",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-02.md",
+      "category": "legacy_plan",
+      "size_bytes": 4392,
+      "sha256": "50c726a413ccd52141dfc00ff300053e1c5b039cdea8aa16b31608daa48deb91",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-03.md",
+      "category": "legacy_plan",
+      "size_bytes": 4359,
+      "sha256": "4c5490bba334aeeb81e0e8ca80c6b0100b06f3fcd69380505cb4fb053095ee74",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-04.md",
+      "category": "legacy_plan",
+      "size_bytes": 4400,
+      "sha256": "e38d6e0f812885e4cbe6201f802b4b5f79c10029f48a0963eb8e449fff12c534",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-05.md",
+      "category": "legacy_plan",
+      "size_bytes": 2617,
+      "sha256": "d04371a141cf878a732f89aa081fdb6334205839aaa3961691a58b8657d51ab7",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-06.md",
+      "category": "legacy_plan",
+      "size_bytes": 3092,
+      "sha256": "4c262f9aa2a73b990dd4a9df0cd1580bd1bd61e9252ba3c645eb271cdc32e4a8",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-07.md",
+      "category": "legacy_plan",
+      "size_bytes": 4356,
+      "sha256": "4393d8d427456382883cff60494a57ed8717551b33b4ef91750ce9ab93692c8b",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-08.md",
+      "category": "legacy_plan",
+      "size_bytes": 4410,
+      "sha256": "2b389a31c02c403f56a229dd9be43b5af4e96d67c55de0b5ed85b94b8fabbadb",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-09.md",
+      "category": "legacy_plan",
+      "size_bytes": 4470,
+      "sha256": "a7abeeaf83a6b0479e5904635462ac038c134ea32d0711e3bc1ed6961662ae90",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-10.md",
+      "category": "legacy_plan",
+      "size_bytes": 4309,
+      "sha256": "fd91d80fd6a0ec840138716e82d341e77d3b58f700730afe4f4b7a4cbd5ac294",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-11.md",
+      "category": "legacy_plan",
+      "size_bytes": 4390,
+      "sha256": "94fc012a907e89c54988c2709a365e4e7ae1ae7db812ba2237144b3518c6f4a9",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-12.md",
+      "category": "legacy_plan",
+      "size_bytes": 4338,
+      "sha256": "b71a1799768c66b14e09df3452c22ccbbff4c944f3d959fc1e34cdca8ba983f4",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-13.md",
+      "category": "legacy_plan",
+      "size_bytes": 5753,
+      "sha256": "09a7e8a4888a61647bcfd8cb6606aead1821a1dc4c43e4abf288e47e931fcbb5",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-14.md",
+      "category": "legacy_plan",
+      "size_bytes": 4359,
+      "sha256": "6d050fda149ff8d97ea40f9312458ef37ba50a7ec9014bb9748e26472d276d89",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-15.md",
+      "category": "legacy_plan",
+      "size_bytes": 5769,
+      "sha256": "bafebf6f43539805071267c1cab909ecf22908233bf7153e18ee23cb140bd452",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-16.md",
+      "category": "legacy_plan",
+      "size_bytes": 5736,
+      "sha256": "746228c1a6cc1546b61780ffeee7d15aa00cfa0dea1f566d113a9d8ec76c87af",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-17.md",
+      "category": "legacy_plan",
+      "size_bytes": 5706,
+      "sha256": "5378ceb0d223964069bc7e37bf04d78570afc3914549509d87907c7104d20369",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-18.md",
+      "category": "legacy_plan",
+      "size_bytes": 4397,
+      "sha256": "b84ad7c3d3c0793fac2d8285f7eb242a888792c8318c31532a126e1463417a01",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-19.md",
+      "category": "legacy_plan",
+      "size_bytes": 5726,
+      "sha256": "f2675192b997ea42c51c3ef391dff6f956fc18b63fe14710af0c1fb591883999",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-20.md",
+      "category": "legacy_plan",
+      "size_bytes": 5772,
+      "sha256": "f86f68c1e57174495cd4cd65bbe89f9e753efe100d1b9bdc651fc4599c424cc6",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-21.md",
+      "category": "legacy_plan",
+      "size_bytes": 5773,
+      "sha256": "65ca7212811d12d493bafff07df370b8ae78c9b9c57c89f896867525702d09eb",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-22.md",
+      "category": "legacy_plan",
+      "size_bytes": 5722,
+      "sha256": "22fb83acee2871ea6b8403696c6d815387a4c6f9fd6443935d2185bf5f77152f",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-23.md",
+      "category": "legacy_plan",
+      "size_bytes": 5782,
+      "sha256": "e17e4a09f81bde583ad2afe80d3fd36512f97873b11e9d050999ca5bab872500",
+      "status": "RESTORED_CLEAN"
+    },
+    {
+      "file_path": "docs/plans/legacy_v2/PLAN-24.md",
+      "category": "legacy_plan",
+      "size_bytes": 7034,
+      "sha256": "ef850a88bdb017fbc2b70bc4ec31a9b1a35dc34e2ebde917dca96a45a5ab2a25",
+      "status": "RESTORED_CLEAN"
+    }
+  ]
+}

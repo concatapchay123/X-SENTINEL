@@ -55,6 +55,23 @@ class TestM1TADRFormula:
         res2 = m1_tadr(vec)
         assert res1 == res2
 
+    def test_top_k_attribution_dominance(self) -> None:
+        # [1.0, 2.0, 3.0, 4.0] -> abs sum = 10.0
+        vec = [1.0, 2.0, 3.0, 4.0]
+        assert math.isclose(m1_tadr(vec, top_k=1), 0.4, rel_tol=1e-9)
+        assert math.isclose(m1_tadr(vec, top_k=2), 0.7, rel_tol=1e-9)
+        assert math.isclose(m1_tadr(vec, top_k=3), 0.9, rel_tol=1e-9)
+        assert math.isclose(m1_tadr(vec, top_k=4), 1.0, rel_tol=1e-9)
+        assert math.isclose(m1_tadr(vec, top_k=10), 1.0, rel_tol=1e-9)
+
+    def test_top_k_with_negative_values(self) -> None:
+        # [-4.0, 3.0, -2.0, 1.0] -> sorted abs: [4.0, 3.0, 2.0, 1.0], total = 10.0
+        vec = [-4.0, 3.0, -2.0, 1.0]
+        assert math.isclose(m1_tadr(vec, top_k=2), 0.7, rel_tol=1e-9)
+
+    def test_top_k_zero_vector(self) -> None:
+        assert m1_tadr([0.0] * 10, top_k=3) == 0.0
+
 
 class TestM1TADRNegativeCases:
     """Negative input validation and error handling for M1 TADR."""
@@ -92,6 +109,14 @@ class TestM1TADRNegativeCases:
         with pytest.raises(TypeError, match="sequence"):
             m1_tadr(42.0)  # type: ignore
 
+    def test_rejects_top_k_less_than_one(self) -> None:
+        with pytest.raises(ValueError, match="top_k"):
+            m1_tadr([1.0, 2.0], top_k=0)
+        with pytest.raises(ValueError, match="top_k"):
+            m1_tadr([1.0, 2.0], top_k=-2)
+        with pytest.raises(ValueError, match="M1 top_k"):
+            M1Config(top_k=0)
+
 
 class TestM1TADRDetectorClass:
     """Contract verification for M1TADRDetector class."""
@@ -101,6 +126,7 @@ class TestM1TADRDetectorClass:
         assert detector.name == "m1"
         assert detector.config.formula == "tadr"
         assert detector.config.enabled is True
+        assert detector.config.top_k == 1
 
     def test_detector_detect_output_contract(self) -> None:
         detector = M1TADRDetector()
@@ -111,6 +137,7 @@ class TestM1TADRDetectorClass:
         assert result.name == "m1"
         assert result.score == 1.0
         assert result.diagnostics["formula"] == "tadr"
+        assert result.diagnostics["top_k"] == 1
         assert result.diagnostics["top_feature_index"] == 2380
         assert result.diagnostics["top_feature_abs_shap"] == 5.0
         assert result.diagnostics["total_abs_shap"] == 5.0
@@ -120,6 +147,16 @@ class TestM1TADRDetectorClass:
         detector = M1TADRDetector()
         assert detector.score([1.0, 1.0, 2.0]) == 0.5
 
+    def test_detector_with_top_k_parameter(self) -> None:
+        cfg = M1Config(top_k=2)
+        detector = M1TADRDetector(cfg)
+        assert detector.config.top_k == 2
+        # [1.0, 2.0, 3.0, 4.0]: top 2 sum = 7.0, total = 10.0 -> 0.7
+        assert math.isclose(detector.score([1.0, 2.0, 3.0, 4.0]), 0.7, rel_tol=1e-9)
+        result = detector.detect([1.0, 2.0, 3.0, 4.0])
+        assert math.isclose(result.score, 0.7, rel_tol=1e-9)
+        assert result.diagnostics["top_k"] == 2
+
     def test_detector_disabled_returns_zero(self) -> None:
         cfg = M1Config(enabled=False)
         detector = M1TADRDetector(cfg)
@@ -128,5 +165,6 @@ class TestM1TADRDetectorClass:
         assert result.diagnostics["status"] == "DISABLED"
 
     def test_detector_dict_config_initialization(self) -> None:
-        detector = M1TADRDetector({"enabled": True, "formula": "tadr", "eps": 1e-10})
+        detector = M1TADRDetector({"enabled": True, "formula": "tadr", "eps": 1e-10, "top_k": 3})
         assert detector.config.eps == 1e-10
+        assert detector.config.top_k == 3

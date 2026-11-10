@@ -342,6 +342,22 @@ def test_view_map_integrity_validation_duplicate_indices():
 # ---------------------------------------------------------------------------
 
 
+def _is_db_connected() -> bool:
+    try:
+        from sqlalchemy import text
+        from x_sentinel.database.session import engine
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False
+
+
+db_available = _is_db_connected()
+
+
+@pytest.mark.db
+@pytest.mark.skipif(not db_available, reason="live Microsoft SQL Server not reachable")
 def test_fastapi_analyze_vector_valid():
     client = TestClient(app)
     payload = {

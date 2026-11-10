@@ -33,3 +33,23 @@ Instrument end-to-end detector and Jev timings separately; set concurrency/resou
 ## Done definition
 
 No silent TBDs, no undocumented schema/API changes, 918/918 automated tests pass (875 upstream regression + 43 performance), and outputs are traceable to versioned config/code.
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_VERIFIED`
+- **Exact Source File Paths:**
+  - `infrastructure/monitoring/timer.py`
+  - `infrastructure/monitoring/percentiles.py`
+  - `infrastructure/monitoring/concurrency.py`
+  - `infrastructure/monitoring/telemetry.py`
+  - `scripts/run_be17_benchmarks.py`
+- **Associated Test Suites:**
+  - `tests/performance/` (43 passed)
+- **Empirical Artifacts:**
+  - `artifacts/performance/p50_p95_p99_report.json`
+  - `artifacts/performance/P50_P95_P99_REPORT.md`
+  - `artifacts/performance/ai_timeout_load_report.json`
+  - `artifacts/performance/AI_TIMEOUT_LOAD_REPORT.md`
+- **Operational Boundaries & Verified Limitations:**
+  - `LIM-PRF-01`: Full TreeSHAP CPU latency ~1.2s P50 / ~1.26s P95; fast-path detector-only latency ~35-41ms P95. Authentic telemetry uses `psutil` (requires OS access). Concurrency bounded by CPU cores (max 50 requests semaphore).

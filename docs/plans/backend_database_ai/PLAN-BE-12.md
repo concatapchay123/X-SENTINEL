@@ -81,3 +81,20 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `PLAN-BE-13` (Jev AI Persistence, API & Feedback).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_VERIFIED`
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/jev_ai/orchestrator.py`
+  - `backend/src/x_sentinel/jev_ai/schemas.py`
+  - `backend/src/x_sentinel/jev_ai/prompt_builder.py`
+  - `backend/src/x_sentinel/jev_ai/guardrails.py`
+- **Associated Test Suites:**
+  - `backend/tests/test_be12_jev_orchestration_guardrails.py`
+  - `backend/tests/test_be12_5_independent_audit.py` (55 passed across BE-12 suite)
+- **Empirical Artifacts:**
+  - Structured prompt templates and schemas in `backend/src/x_sentinel/jev_ai/`
+- **Operational Boundaries & Verified Limitations:**
+  - Invariants 03, 04, 11 enforced. Single-token logprob classification only (Choice, Bool, Score); free-text generation unsupported by decision model (`Jev-Style-Qwen3.5-2B-Decision`). Structured deterministic templates used for Explain/Report. `advisory_only: true` immutable.

@@ -41,3 +41,20 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `BE-04` (Domain, Input Schema & 3-View Mapping).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_VERIFIED`
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/main.py`
+  - `backend/src/x_sentinel/database/health.py`
+  - `backend/src/x_sentinel/jev_ai/status.py`
+  - `backend/src/x_sentinel/jev_ai/schemas.py`
+  - `backend/src/x_sentinel/api/routes.py`
+- **Associated Test Suites:**
+  - `backend/tests/test_be03_foundation_health_readiness.py` (22 passed)
+- **Empirical Artifacts:**
+  - OpenAPI and health schemas in `backend/src/x_sentinel/main.py`
+- **Operational Boundaries & Verified Limitations:**
+  - None. `/health` is architecturally decoupled from external dependencies; `/ready` transparently reflects DB migration readiness.

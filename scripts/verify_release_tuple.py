@@ -65,8 +65,16 @@ def get_git_revision() -> str:
         return "untracked_source_revision"
 
 
-def get_docker_image_id(image_tag: str = "x-sentinel-backend:test") -> str:
-    """Queries local docker daemon for image ID/digest if available."""
+def safe_rel_path(path: Path) -> str:
+    """Returns path relative to PROJECT_ROOT using forward slashes."""
+    try:
+        return str(path.relative_to(PROJECT_ROOT)).replace("\\", "/")
+    except ValueError:
+        return str(path).replace("\\", "/")
+
+
+def get_docker_image_id(image_tag: str = "x-sentinel-backend:test") -> str | None:
+    """Queries local docker daemon for image ID/digest if available; returns None if unavailable."""
     try:
         res = subprocess.run(
             ["docker", "image", "inspect", "--format", "{{.Id}}", image_tag],
@@ -74,9 +82,10 @@ def get_docker_image_id(image_tag: str = "x-sentinel-backend:test") -> str:
             text=True,
             check=True,
         )
-        return res.stdout.strip()
+        out = res.stdout.strip()
+        return out if out else None
     except Exception:
-        return "sha256:candidate_build_local"
+        return None
 
 
 def build_release_tuple(
@@ -97,15 +106,30 @@ def build_release_tuple(
 
     models_dir = PROJECT_ROOT / "models"
     model_readme = models_dir / "README.md"
+    model_weight_files = [f for f in models_dir.glob("*") if f.is_file() and f.suffix in (".txt", ".bin", ".pkl") and f.name != "README.md"]
+    if model_weight_files:
+        model_artifact_file = model_weight_files[0]
+        model_manifest_hash = compute_file_sha256(model_artifact_file)
+        model_verified = True
+        model_path_str = safe_rel_path(model_artifact_file)
+        model_status_str = "verified_weights_frozen"
+    else:
+        model_artifact_file = model_readme
+        model_manifest_hash = compute_file_sha256(model_readme)
+        model_verified = False
+        model_path_str = "models/README.md (weights missing)"
+        model_status_str = "draft_weights_missing"
+
     d1_calib_path = PROJECT_ROOT / "artifacts" / "calibration" / "d1_calibration.json"
     migration_head_path = PROJECT_ROOT / "database" / "migrations" / "versions" / "0002_v3_jev_ai_audit.py"
 
     git_sha = get_git_revision()
     image_id = get_docker_image_id(image_tag)
+    image_verified = image_id is not None
+    image_digest_str = image_id or "UNAVAILABLE"
 
     detector_cfg_hash = compute_file_sha256(detector_cfg_path)
     view_map_hash = compute_file_sha256(view_map_path)
-    model_manifest_hash = compute_file_sha256(model_readme) if model_readme.exists() else "none"
     d1_calib_hash = compute_file_sha256(d1_calib_path) if d1_calib_path.exists() else "none"
     migration_hash = compute_file_sha256(migration_head_path) if migration_head_path.exists() else "none"
     backend_dockerfile_hash = compute_file_sha256(PROJECT_ROOT / "infrastructure" / "docker" / "backend.Dockerfile")
@@ -116,7 +140,7 @@ def build_release_tuple(
     bundle_hasher = hashlib.sha256()
     for item in [
         git_sha,
-        image_id,
+        image_digest_str,
         detector_cfg_hash,
         view_map_hash,
         model_manifest_hash,
@@ -127,20 +151,12 @@ def build_release_tuple(
         bundle_hasher.update(item.encode("utf-8"))
     bundle_digest = bundle_hasher.hexdigest()
 
-    def safe_rel_path(p: Path | None) -> str | None:
-        if p is None:
-            return None
-        try:
-            return str(p.relative_to(PROJECT_ROOT))
-        except ValueError:
-            return str(p)
-
     release_tuple = {
         "release_version": "0.3.0",
         "release_bundle_digest": f"sha256:{bundle_digest}",
         "timestamp_utc": datetime.now(UTC).isoformat(),
         "git_commit": git_sha,
-        "container_image_digest": image_id,
+        "container_image_digest": image_digest_str,
         "database_schema_revision": CANONICAL_DB_REVISION,
         "database_migration_file_sha256": migration_hash,
         "detector_config": {
@@ -156,9 +172,9 @@ def build_release_tuple(
             "sha256": d1_calib_hash,
         },
         "model_artifact": {
-            "path": safe_rel_path(model_readme),
+            "path": model_path_str,
             "sha256": model_manifest_hash,
-            "status": "deterministic_metadata_frozen",
+            "status": model_status_str,
         },
         "infrastructure": {
             "backend_dockerfile_sha256": backend_dockerfile_hash,
@@ -173,7 +189,8 @@ def build_release_tuple(
         "compatibility": {
             "code_and_config_compatible": True,
             "database_revision_compatible": True,
-            "model_and_detector_compatible": True,
+            "container_image_verified": image_verified,
+            "model_and_detector_compatible": model_verified,
             "jev_advisory_separation_verified": True,
         },
     }
@@ -186,10 +203,16 @@ def write_release_artifacts(release_tuple: dict[str, Any]) -> tuple[Path, Path]:
     release_dir = PROJECT_ROOT / "artifacts" / "release"
     release_dir.mkdir(parents=True, exist_ok=True)
 
+    image_verified = release_tuple["compatibility"]["container_image_verified"]
+    model_verified = release_tuple["compatibility"]["model_and_detector_compatible"]
+
     json_path = release_dir / "release_tuple.json"
     json_path.write_text(json.dumps(release_tuple, indent=2), encoding="utf-8")
 
     md_path = release_dir / "RELEASE_MANIFEST.md"
+    image_status = "BUILD PASS" if image_verified else "UNAVAILABLE (Image missing)"
+    model_status_label = "FROZEN" if model_verified else "DRAFT (Weights missing)"
+
     md_content = f"""# X-SENTINEL V3 — RELEASE MANIFEST & COMPATIBILITY TUPLE
 
 **Release Version:** {release_tuple['release_version']}  
@@ -197,6 +220,7 @@ def write_release_artifacts(release_tuple: dict[str, Any]) -> tuple[Path, Path]:
 **Timestamp (UTC):** {release_tuple['timestamp_utc']}  
 **Git Commit Revision:** `{release_tuple['git_commit']}`  
 **Container Image ID:** `{release_tuple['container_image_digest']}`  
+**Verification Status:** {'VERIFIED' if image_verified and model_verified else 'PARTIAL_DRAFT'}
 
 ---
 
@@ -204,12 +228,12 @@ def write_release_artifacts(release_tuple: dict[str, Any]) -> tuple[Path, Path]:
 
 | Component | Target Identity / Path | SHA-256 Digest | Status |
 |---|---|---|---|
-| **Container Image** | `x-sentinel-backend:test` | `{release_tuple['container_image_digest'][:19]}...` | BUILD PASS |
+| **Container Image** | `x-sentinel-backend:test` | `{release_tuple['container_image_digest'][:19]}...` | {image_status} |
 | **Database Schema** | `{release_tuple['database_schema_revision']}` | `{release_tuple['database_migration_file_sha256'][:16]}...` | HEAD PASS |
 | **Detector Config** | `{release_tuple['detector_config']['path']}` | `{release_tuple['detector_config']['sha256'][:16]}...` | FROZEN |
 | **View Map** | `{release_tuple['view_map']['path']}` | `{release_tuple['view_map']['sha256'][:16]}...` | FROZEN |
 | **Calibration Bundle** | `{release_tuple['calibration_bundle']['path']}` | `{release_tuple['calibration_bundle']['sha256'][:16]}...` | FROZEN |
-| **Model Artifact** | `{release_tuple['model_artifact']['path']}` | `{release_tuple['model_artifact']['sha256'][:16]}...` | TRACEABLE |
+| **Model Artifact** | `{release_tuple['model_artifact']['path']}` | `{release_tuple['model_artifact']['sha256'][:16]}...` | {model_status_label} |
 | **Compose Infrastructure** | `docker-compose.yml` | `{release_tuple['infrastructure']['docker_compose_sha256'][:16]}...` | VERIFIED |
 
 ---
@@ -219,7 +243,8 @@ def write_release_artifacts(release_tuple: dict[str, Any]) -> tuple[Path, Path]:
 - **Feature Schema:** {release_tuple['contracts']['feature_vector_dimension']} features strictly validated.
 - **Evidence Contract:** {release_tuple['contracts']['evidence_schema_version']} immutable hashing.
 - **Jev AI Prompt:** {release_tuple['contracts']['jev_prompt_version']} advisory-only runtime.
-- **Atomic Rollback Tuple:** All 5 core artifacts locked to single digest `{release_tuple['release_bundle_digest']}`.
+- **Atomic Rollback Tuple:** All core artifacts locked to single digest `{release_tuple['release_bundle_digest']}`.
+- **Verification Guarantee:** Image verified: {image_verified}, Model weights verified: {model_verified}.
 """
     md_path.write_text(md_content, encoding="utf-8")
     return json_path, md_path
@@ -229,6 +254,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="X-SENTINEL V3 Release Tuple Verifier")
     parser.add_argument("--image-tag", default="x-sentinel-backend:test", help="Docker image tag to inspect")
     parser.add_argument("--verify-only", action="store_true", help="Verify without writing new artifacts")
+    parser.add_argument("--strict", action="store_true", help="Strict mode: require image and model weights to be fully verified")
+    parser.add_argument("--require-image", action="store_true", help="Require container image to exist, exit 1 if missing")
+    parser.add_argument("--require-model", action="store_true", help="Require real model weights to exist, exit 1 if missing")
     args = parser.parse_args()
 
     try:
@@ -237,12 +265,40 @@ def main() -> int:
             logger.error("Release tuple failed: database revision incompatible")
             return 2
 
+        image_ok = tup["compatibility"]["container_image_verified"]
+        model_ok = tup["compatibility"]["model_and_detector_compatible"]
+
+        if args.strict:
+            if not image_ok:
+                logger.error("RELEASE TUPLE STRICT CHECK FAILED: Container image '%s' is not verified / unavailable", args.image_tag)
+                return 1
+            if not model_ok:
+                logger.error("RELEASE TUPLE STRICT CHECK FAILED: Model weights are missing / unverified in models/")
+                return 1
+
+        if args.require_image and not image_ok:
+            logger.error("RELEASE TUPLE FAILED: Container image '%s' required but unavailable", args.image_tag)
+            return 1
+
+        if args.require_model and not model_ok:
+            logger.error("RELEASE TUPLE FAILED: Model weights required but not found in models/")
+            return 1
+
         if not args.verify_only:
             j_path, m_path = write_release_artifacts(tup)
             logger.info("Wrote release tuple JSON to %s", j_path)
             logger.info("Wrote release manifest MD to %s", m_path)
 
-        logger.info("RELEASE TUPLE VERIFIED: %s", tup["release_bundle_digest"])
+        if image_ok and model_ok:
+            logger.info("RELEASE TUPLE FULLY VERIFIED: %s", tup["release_bundle_digest"])
+        else:
+            logger.warning(
+                "RELEASE TUPLE GENERATED IN DRAFT/UNVERIFIED STATE (image_verified=%s, model_verified=%s): %s",
+                image_ok,
+                model_ok,
+                tup["release_bundle_digest"],
+            )
+
         return 0
     except Exception as exc:
         logger.error("RELEASE TUPLE VERIFICATION ERROR: %s", exc)

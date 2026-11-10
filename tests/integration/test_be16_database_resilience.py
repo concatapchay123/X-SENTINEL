@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, event, select
@@ -256,30 +257,42 @@ class TestAuditImmutabilityAndTamperDetection:
 class TestConcurrencyAndThreadSafety:
     """Verifies that concurrent transaction attempts handle locking and uniqueness safely."""
 
-    def test_concurrent_duplicate_request_id_fails_closed(self, resilience_db: Session) -> None:
+    def test_concurrent_duplicate_request_id_fails_closed(self, tmp_path: Path) -> None:
         """Attempting to persist the same request_id from multiple concurrent threads rejects duplicates."""
         from concurrent.futures import ThreadPoolExecutor
 
-        from sqlalchemy.exc import IntegrityError
+        from sqlalchemy.exc import DBAPIError, IntegrityError
+        from sqlalchemy.orm import sessionmaker
         from x_sentinel.audit.writer import AuditWriteFailureError
+
+        db_path = tmp_path / "concurrent_resilience.db"
+        engine = create_engine(
+            f"sqlite:///{db_path}",
+            connect_args={"check_same_thread": False, "timeout": 30},
+        )
+        Base.metadata.create_all(engine)
+        session_factory = sessionmaker(bind=engine)
 
         shared_request_id = f"concurrent-{uuid.uuid4()}"
         evidence = _make_evidence(request_id=shared_request_id)
 
-        # Persist the initial record
-        repo = CanonicalEvidenceRepository(resilience_db)
-        repo.persist(evidence)
+        # Persist the initial record in its own session
+        with session_factory() as init_session:
+            repo = CanonicalEvidenceRepository(init_session)
+            repo.persist(evidence)
 
         # Multiple concurrent threads attempt to persist identical request_id simultaneously
         errors: list[Exception] = []
         successes: list[int] = []
 
         def _worker(thread_idx: int) -> None:
-            try:
-                repo.persist(evidence)
-                successes.append(thread_idx)
-            except (AuditWriteFailureError, IntegrityError, ValueError) as exc:
-                errors.append(exc)
+            with session_factory() as thread_session:
+                try:
+                    thread_repo = CanonicalEvidenceRepository(thread_session)
+                    thread_repo.persist(evidence)
+                    successes.append(thread_idx)
+                except (AuditWriteFailureError, IntegrityError, DBAPIError, ValueError) as exc:
+                    errors.append(exc)
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(_worker, i) for i in range(4)]
@@ -290,6 +303,6 @@ class TestConcurrencyAndThreadSafety:
         assert len(successes) == 0, f"Duplicate was unexpectedly persisted: {successes}"
         assert len(errors) == 4, f"Expected 4 rejections, got {len(errors)}"
         assert all(
-            any(k in str(e).lower() for k in ("duplicate", "locked", "unique", "integrity", "conflict", "already exists"))
+            any(k in str(e).lower() for k in ("duplicate", "locked", "unique", "integrity", "conflict", "already exists", "busy"))
             for e in errors
         ), f"Unexpected error encountered during concurrent duplicate test: {errors}"

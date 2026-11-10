@@ -39,7 +39,10 @@ from x_sentinel.security.auth import (
     require_roles,
 )
 from x_sentinel.services.alert_service import AlertService
-from x_sentinel.services.analysis_service import AnalysisService
+from x_sentinel.services.analysis_service import (
+    AnalysisService,
+    ScientificModeUnavailableError,
+)
 from x_sentinel.services.evidence_service import EvidenceService
 from x_sentinel.services.history_service import HistoryService
 from x_sentinel.services.jev_ai_service import JevAIService, JevAIServiceError
@@ -54,12 +57,18 @@ router = APIRouter()
 
 def get_analysis_service(db: Session = Depends(get_db)) -> AnalysisService:
     view_name = "views.demo.yaml" if settings.demo_mode else "views.scientific.yaml"
-    return AnalysisService(
-        audit_path=settings.audit_log_path,
-        view_map_path=settings.config_dir / view_name,
-        demo_mode=settings.demo_mode,
-        session=db,
-    )
+    try:
+        return AnalysisService(
+            audit_path=settings.audit_log_path,
+            view_map_path=settings.config_dir / view_name,
+            demo_mode=settings.demo_mode,
+            session=db,
+        )
+    except ScientificModeUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "XS_SCIENTIFIC_UNAVAILABLE", "message": str(exc)},
+        ) from exc
 
 
 def get_history_service() -> HistoryService:
@@ -197,6 +206,11 @@ def analyze_vector(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"code": "XS_AUDIT_WRITE_FAILED", "message": msg},
+        ) from exc
+    except ScientificModeUnavailableError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "XS_SCIENTIFIC_UNAVAILABLE", "message": str(exc)},
         ) from exc
     except RuntimeError as exc:
         raise HTTPException(
@@ -374,6 +388,7 @@ def list_alerts(
         severity=severity,
         status=status_filter,
         analysis_job_id=analysis_job_id,
+        user=user,
     )
     return AlertListResponse(
         items=items,
@@ -397,7 +412,7 @@ def get_alert_detail(
         require_roles(Role.ADMIN.value, Role.ANALYST.value, Role.OPERATOR.value)
     ),
 ) -> AlertSummary:
-    alert = alert_svc.get_alert(session=db, alert_id=alert_id)
+    alert = alert_svc.get_alert(session=db, alert_id=alert_id, user=user)
     if alert is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -427,6 +442,7 @@ def update_alert_status(
             alert_id=alert_id,
             new_status=req.status,
             actor_id=persisted_actor_id,
+            user=user,
         )
         return updated
     except LookupError as exc:

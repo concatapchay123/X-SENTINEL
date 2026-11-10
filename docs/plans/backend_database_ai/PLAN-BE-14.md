@@ -44,3 +44,20 @@ Produce frozen research runs, raw predictions, statistical significance evaluati
 ## Done definition
 
 No silent TBDs, no undocumented schema/API changes, 36/36 BE-14 tests pass, all E0–E5 candidate artifacts and SHA-256 manifests are persisted and independently recomputable from `raw_predictions.jsonl`, and strict scientific blockers (`OQ-01`, `OQ-02`, `MISSING_POISONED_MODELS`) are explicitly enforced and documented.
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_WITH_LIMITATIONS` (Code, Metrics, Statistics, Blind Custody & Candidate E0–E5 Suite Verified / Strict Scientific Sign-Off Blocked)
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/evaluation/protocol.py`
+  - `backend/src/x_sentinel/evaluation/metrics.py`
+  - `backend/src/x_sentinel/evaluation/statistics.py`
+  - `backend/src/x_sentinel/evaluation/blind.py`
+  - `backend/src/x_sentinel/evaluation/runner.py`
+- **Associated Test Suites:**
+  - `backend/tests/test_be14_threat_simulation_e0_e5_statistics.py` (36 passed)
+- **Empirical Artifacts:**
+  - `artifacts/evaluation/be14_candidate_suite/` (11 candidate evaluation runs)
+- **Operational Boundaries & Verified Limitations:**
+  - `LIM-SCI-04`: Pre-trained poisoned LightGBM models absent from repo; clean-trigger control ASR verified (0.0%), true backdoor evasion testing on poisoned models blocked. Strict scientific freeze blocked pending OQ-01, OQ-02, and trained poisoned models.

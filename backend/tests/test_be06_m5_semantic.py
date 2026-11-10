@@ -146,7 +146,10 @@ class TestM5SemanticPlausibilityDetectorClass:
 
         assert isinstance(res, SignalResult)
         assert res.name == "m5"
-        assert res.score == 1.0
+        # Polarity alignment (SCI-05): Clean vector produces 0.0 anomaly score
+        assert res.score == 0.0
+        assert res.diagnostics["plausibility_score"] == 1.0
+        assert res.diagnostics["anomaly_score"] == 0.0
         assert res.diagnostics["rules_sha256"] == CANONICAL_SHA256
         assert res.diagnostics["rules_passed"] == res.diagnostics["rules_evaluated"]
 
@@ -156,13 +159,16 @@ class TestM5SemanticPlausibilityDetectorClass:
         vec[10] = -1.0  # Negative byte frequency
 
         res = detector.detect(vec)
-        assert res.score < 1.0
+        # Polarity alignment (SCI-05): Violations produce positive anomaly score
+        assert res.score > 0.0
+        assert res.diagnostics["plausibility_score"] < 1.0
+        assert res.diagnostics["anomaly_score"] > 0.0
         assert res.diagnostics["rules_failed"] >= 1
         assert len(res.diagnostics["violations"]) >= 1
 
     def test_detector_score_convenience_method(self) -> None:
         detector = M5SemanticPlausibilityDetector()
-        assert detector.score([0.0] * 2381) == 1.0
+        assert detector.score([0.0] * 2381) == 0.0
 
     def test_detector_disabled_returns_zero(self) -> None:
         cfg = M5Config(enabled=False)

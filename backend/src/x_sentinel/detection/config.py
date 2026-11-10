@@ -13,12 +13,15 @@ class M1Config:
     enabled: bool = True
     formula: str = "tadr"
     eps: float = 1e-12
+    top_k: int = 1
 
     def __post_init__(self) -> None:
         if self.formula != "tadr":
             raise ValueError(f"Unsupported M1 formula: {self.formula}. Expected 'tadr'.")
         if self.eps <= 0.0:
             raise ValueError(f"M1 eps must be positive, got {self.eps}.")
+        if self.top_k < 1:
+            raise ValueError(f"M1 top_k must be >= 1, got {self.top_k}.")
 
 
 @dataclass(frozen=True)
@@ -149,6 +152,7 @@ def load_detector_config(config_source: Path | str | dict[str, Any] | None = Non
         enabled=_parse_bool(m1_data.get("enabled"), True),
         formula=str(m1_data.get("formula", "tadr")),
         eps=float(m1_data.get("eps", 1e-12)),
+        top_k=int(m1_data.get("top_k", 1) if m1_data.get("top_k") is not None else 1),
     )
 
     m2_data = data.get("m2", {}) or {}

@@ -38,3 +38,22 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `BE-05` (LightGBM & SHAP Model Service).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_WITH_LIMITATIONS` (Demo Mode Verified / Strict Scientific Mode Fail-Closed Gated)
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/data/schema.py`
+  - `backend/src/x_sentinel/data/views.py`
+  - `configs/views.demo.yaml`
+  - `configs/views.scientific.yaml`
+- **Associated Test Suites:**
+  - `backend/tests/test_be04_domain_schema_views.py` (49 passed across schema and views)
+  - `backend/tests/test_schema.py`
+  - `backend/tests/test_views.py`
+- **Empirical Artifacts:**
+  - `configs/views.demo.yaml` (SHA-256 `d0a4fd5c...`)
+  - `configs/views.scientific.yaml`
+- **Operational Boundaries & Verified Limitations:**
+  - `OQ-01` scientific blocker: `configs/views.scientific.yaml` retains `TBD_MUST_FREEZE_BEFORE_SCIENTIFIC_RUN`. Strict scientific mode fails closed (`ExperimentBlockedError`) by design; system operates reliably in demo mode using `configs/views.demo.yaml`.

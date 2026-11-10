@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import pytest
@@ -107,8 +108,9 @@ class TestDetectorPipelineIntegration:
         assert results["m1"].score > 0.0
         assert results["m2"].score >= 0.0
         assert results["m3"].score > 0.0
-        assert results["m4"].score >= 0.0
-        assert results["m5"].score == 1.0  # Clean zero vector satisfies all rules
+        assert results["m5"].score == 0.0  # Clean zero vector satisfies all rules -> 0.0 anomaly score
+        assert results["m5"].diagnostics["plausibility_score"] == 1.0
+        assert results["m5"].diagnostics["anomaly_score"] == 0.0
 
     def test_pipeline_scores_convenience_method(self, mock_model) -> None:
         view_map = load_view_map(Path("configs/views.demo.yaml"), allow_demo=True)
@@ -204,3 +206,57 @@ class TestDetectorPipelineIntegration:
         scores = pipeline.scores([0.0] * 2381)
         assert len(scores) == 5
         assert all(isinstance(v, float) and 0.0 <= v <= 1.0 for v in scores.values())
+
+
+class TestAnalysisServicePipelineIntegration:
+    """Verifies that AnalysisService integrates genuine DetectorPipeline and FusionEngine."""
+
+    def test_analysis_service_genuine_m1_m5_pipeline_evaluation(self, tmp_path: Path) -> None:
+        from x_sentinel.services.analysis_service import AnalysisService
+
+        audit_file = tmp_path / "test_audit.jsonl"
+        svc = AnalysisService(
+            audit_path=audit_file,
+            view_map_path=Path("configs/views.demo.yaml"),
+            demo_mode=True,
+        )
+
+        assert hasattr(svc, "pipeline")
+        assert isinstance(svc.pipeline, DetectorPipeline)
+
+        # Create a vector with an M5 domain violation (negative byte count)
+        vec = [0.0] * 2381
+        vec[10] = -1.0  # triggers RULE-01 byte histogram violation
+
+        res = svc.analyze_vector(vec)
+
+        # Verify all signals are genuinely extracted
+        assert set(res.signals.keys()) == {"m1", "m2", "m3", "m4", "m5"}
+        for _sig_name, sig_score in res.signals.items():
+            assert isinstance(sig_score, float)
+            assert 0.0 <= sig_score <= 1.0
+
+        # M5 must reflect the violation with a positive anomaly score (not a 0.0 stub)
+        assert res.signals["m5"] > 0.0
+
+        # Suspicion score must match the fusion engine weighted evaluation
+        expected_fusion = svc.fusion_engine.score(res.signals)
+        assert math.isclose(res.suspicion_score, expected_fusion, rel_tol=1e-6)
+
+    def test_analysis_service_clean_vector_m5_zero_anomaly(self, tmp_path: Path) -> None:
+        from x_sentinel.services.analysis_service import AnalysisService
+
+        audit_file = tmp_path / "test_audit_clean.jsonl"
+        svc = AnalysisService(
+            audit_path=audit_file,
+            view_map_path=Path("configs/views.demo.yaml"),
+            demo_mode=True,
+        )
+
+        clean_vec = [0.0] * 2381
+        res = svc.analyze_vector(clean_vec)
+
+        # Clean compliant PE vector produces 0.0 anomaly score for M5
+        assert res.signals["m5"] == 0.0
+        assert 0.0 <= res.suspicion_score <= 1.0
+

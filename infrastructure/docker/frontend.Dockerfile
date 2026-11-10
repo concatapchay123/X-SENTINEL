@@ -7,14 +7,12 @@ RUN groupadd -g 10001 appgroup && \
 WORKDIR /app
 
 COPY pyproject.toml README.md ./
-COPY backend ./backend
 COPY frontend ./frontend
 
-RUN pip install --no-cache-dir . && \
+RUN pip install --no-cache-dir ".[ui]" && \
     chown -R appuser:appgroup /app
 
-ENV PYTHONPATH="/app/backend/src:/app" \
-    PYTHONUNBUFFERED="1"
+ENV PYTHONUNBUFFERED="1"
 
 USER appuser
 EXPOSE 8501

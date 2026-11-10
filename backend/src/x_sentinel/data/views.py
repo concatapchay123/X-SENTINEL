@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 from collections.abc import Sequence
@@ -192,19 +193,8 @@ class ViewMap:
         }
 
 
-def load_view_map(path_or_dict: Path | dict[str, Any], allow_demo: bool = True) -> ViewMap:
-    """Load, parse and validate a versioned view mapping from YAML file or dictionary.
-
-    Enforces fail-closed security for scientific mode and validates hash integrity.
-    """
-    if isinstance(path_or_dict, Path):
-        content = path_or_dict.read_text(encoding="utf-8")
-        raw = yaml.safe_load(content)
-    elif isinstance(path_or_dict, dict):
-        raw = path_or_dict
-    else:
-        raise TypeError(f"expected Path or dict, got {type(path_or_dict)}")
-
+def _parse_view_map_dict(raw: dict[str, Any], allow_demo: bool = True) -> ViewMap:
+    """Internal helper to validate and construct a ViewMap from a raw dictionary."""
     status = str(raw.get("status", ""))
     if "TBD" in status:
         raise RuntimeError(
@@ -256,3 +246,26 @@ def load_view_map(path_or_dict: Path | dict[str, Any], allow_demo: bool = True) 
         sha256=computed_hash,
         **specs,
     )
+
+
+@functools.lru_cache(maxsize=8)
+def _load_view_map_from_file(resolved_path: str, allow_demo: bool = True) -> ViewMap:
+    """Cached loader for view map YAML files to prevent repeated disk I/O."""
+    content = Path(resolved_path).read_text(encoding="utf-8")
+    raw = yaml.safe_load(content)
+    return _parse_view_map_dict(raw, allow_demo=allow_demo)
+
+
+def load_view_map(path_or_dict: Path | str | dict[str, Any], allow_demo: bool = True) -> ViewMap:
+    """Load, parse and validate a versioned view mapping from YAML file or dictionary.
+
+    Enforces fail-closed security for scientific mode and validates hash integrity.
+    Uses LRU cache for file paths to eliminate repeated disk I/O and parsing overhead.
+    """
+    if isinstance(path_or_dict, (Path, str)):
+        resolved_path = str(Path(path_or_dict).resolve())
+        return _load_view_map_from_file(resolved_path, allow_demo=allow_demo)
+    elif isinstance(path_or_dict, dict):
+        return _parse_view_map_dict(path_or_dict, allow_demo=allow_demo)
+    else:
+        raise TypeError(f"expected Path, str, or dict, got {type(path_or_dict)}")

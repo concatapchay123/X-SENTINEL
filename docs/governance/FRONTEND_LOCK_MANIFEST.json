@@ -1,0 +1,292 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "manifest_name": "X-SENTINEL V3 Cryptographic Frontend Lock Manifest",
+  "version": "1.0.0",
+  "created_at": "2026-10-16T13:15:00Z",
+  "governance": {
+    "status": "LOCKED_BY_USER",
+    "frontend_implementation_allowed": false,
+    "enforcement_gate": "Gate G01: Source Integrity & Frontend Lock",
+    "policy": "All frontend directories, plans, and files are strictly locked. No additions, deletions, or modifications permitted without cryptographic manifest re-authorization.",
+    "hash_algorithm": "SHA-256",
+    "total_locked_files": 31,
+    "total_locked_bytes": 441128,
+    "total_locked_lines": 6910
+  },
+  "locked_directories": {
+    "frontend": {
+      "relative_path": "frontend",
+      "status": "LOCKED",
+      "expected_file_count": 2,
+      "allow_extraneous_files": false
+    },
+    "docs/frontend-handoff": {
+      "relative_path": "docs/frontend-handoff",
+      "status": "LOCKED",
+      "expected_file_count": 17,
+      "allow_extraneous_files": false
+    },
+    "docs/plans/frontend": {
+      "relative_path": "docs/plans/frontend",
+      "status": "LOCKED",
+      "expected_file_count": 10,
+      "allow_extraneous_files": false
+    },
+    "docs/frontend": {
+      "relative_path": "docs/frontend",
+      "status": "FORBIDDEN_UNCREATED",
+      "expected_file_count": 0,
+      "allow_extraneous_files": false
+    }
+  },
+  "locked_files": [
+    {
+      "relative_path": "frontend/README.md",
+      "category": "frontend_runtime",
+      "description": "Inherited Streamlit UI track README documentation",
+      "size_bytes": 532,
+      "line_count": 17,
+      "sha256": "24ff80795045e406d9ed10c1810d929262816422a3d9b0fdac48553ef4ef8a27"
+    },
+    {
+      "relative_path": "frontend/app.py",
+      "category": "frontend_runtime",
+      "description": "Inherited Streamlit UI runnable web application",
+      "size_bytes": 3260,
+      "line_count": 89,
+      "sha256": "efc1b6a8e1538898e7a53268aa4628f54fbd4aed379275c9637270036e2b4c7e"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/00-EXECUTIVE-SUMMARY.md",
+      "category": "frontend_handoff_docs",
+      "description": "Executive summary of frontend handoff contracts",
+      "size_bytes": 18404,
+      "line_count": 181,
+      "sha256": "d683ec27a1a807debcc970517e2e59fd2389930306378ac85b7523e6c2b848f7"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/01-SYSTEM-ARCHITECTURE.md",
+      "category": "frontend_handoff_docs",
+      "description": "System architecture specification for frontend clients",
+      "size_bytes": 15631,
+      "line_count": 208,
+      "sha256": "32bbaff2bea5ea559b1580ee2a489129242a3963dd8bbbce3559561829e826dc"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/02-FEATURE-INVENTORY.md",
+      "category": "frontend_handoff_docs",
+      "description": "Complete catalog of frontend user features and states",
+      "size_bytes": 52993,
+      "line_count": 572,
+      "sha256": "5f05c648678141441ec84e53aadc4720a28cd0e117f46b50810122204b5760ea"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/03-API-CATALOG.md",
+      "category": "frontend_handoff_docs",
+      "description": "REST API catalog consumed by frontend",
+      "size_bytes": 31484,
+      "line_count": 731,
+      "sha256": "c5d19038e023547c286aeee3f7758d2d93c568372c9a4aead3043f9bc330680e"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/04-DATABASE-SCHEMA.md",
+      "category": "frontend_handoff_docs",
+      "description": "Database schema view relevant to frontend domain models",
+      "size_bytes": 22088,
+      "line_count": 443,
+      "sha256": "a972cdd6889534676bffbc6003011bc9efb347c1f998b884607da13109d35e65"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/05-AUTH-AND-PERMISSIONS.md",
+      "category": "frontend_handoff_docs",
+      "description": "Role-based access control and session specifications",
+      "size_bytes": 12023,
+      "line_count": 172,
+      "sha256": "59e0bfb7d7b39c4a5ea2e8a061f00fa16d73e2e44cf3c90cd91f9c2b5248beb4"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/06-BUSINESS-WORKFLOWS.md",
+      "category": "frontend_handoff_docs",
+      "description": "End-to-end user journey workflows and state machines",
+      "size_bytes": 17277,
+      "line_count": 286,
+      "sha256": "52e52d216f4f057f4966f5e5ae04861cc5f3020564bbfeaf2887731bef38f494"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/07-FRONTEND-PAGE-INVENTORY.md",
+      "category": "frontend_handoff_docs",
+      "description": "Canonical Page Registry (P01-P10) definitions",
+      "size_bytes": 38924,
+      "line_count": 381,
+      "sha256": "c84da6f6ad55347e8d0938e6a07701010d0ac44e4e161e2818f321debc2ca0a5"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/08-PAGE-AND-UI-SPECIFICATIONS.md",
+      "category": "frontend_handoff_docs",
+      "description": "UI layout, wireframe hierarchy, and component mapping",
+      "size_bytes": 35438,
+      "line_count": 384,
+      "sha256": "129c5bdd4d361bdd9134f6849013823cff488c71ceaf93226fd3bec653d3cd03"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/09-COMPONENT-INVENTORY.md",
+      "category": "frontend_handoff_docs",
+      "description": "Standardized Component Registry (C01-C35) specifications",
+      "size_bytes": 22434,
+      "line_count": 339,
+      "sha256": "2e0254e5d34732dcd1fd9c4140d3e27c75aed3cb015ea0907978b9a51e9db50e"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/10-FRONTEND-API-INTEGRATION.md",
+      "category": "frontend_handoff_docs",
+      "description": "API client integration, polling, and retry contracts",
+      "size_bytes": 25741,
+      "line_count": 600,
+      "sha256": "26c2e944a004f9427c41e524adb00c4404b1fb0187a8d5387e41f6f7e0c3a30c"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/11-DATA-CONTRACTS.md",
+      "category": "frontend_handoff_docs",
+      "description": "TypeScript/Zod data transfer objects and validation rules",
+      "size_bytes": 28850,
+      "line_count": 697,
+      "sha256": "2b5e214efea2c79fe97b7ec363505ee37db574ab45c20634a7fc3624aaeb339b"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/12-FRONTEND-GAP-ANALYSIS.md",
+      "category": "frontend_handoff_docs",
+      "description": "Authoritative register of frontend gaps and backend dependencies",
+      "size_bytes": 27967,
+      "line_count": 263,
+      "sha256": "ce3901a3139314553728bbdd4cef350e80758fdedf06c49d915fc57b4cbcd5d9"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/13-FRONTEND-IMPLEMENTATION-ROADMAP.md",
+      "category": "frontend_handoff_docs",
+      "description": "Phased implementation roadmap for frontend development",
+      "size_bytes": 17629,
+      "line_count": 230,
+      "sha256": "d6597af0aa218a5a9dd104df58040807f53f67334bb39cb53b0a259926976067"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/14-FRONTEND-TEST-STRATEGY.md",
+      "category": "frontend_handoff_docs",
+      "description": "Comprehensive testing strategy for frontend components and MSW",
+      "size_bytes": 26030,
+      "line_count": 534,
+      "sha256": "679b9062bb743772abbb15442ecc0ad8a895e8ef5bbdca6242da2be5155a46e9"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/15-TRACEABILITY-MATRIX.md",
+      "category": "frontend_handoff_docs",
+      "description": "Traceability matrix between features, pages, APIs, and tests",
+      "size_bytes": 15320,
+      "line_count": 136,
+      "sha256": "1cf8e897367eedca6d3b9fa83b14d72327950ee92a979e99a25801ca0b29db0b"
+    },
+    {
+      "relative_path": "docs/frontend-handoff/16-FRONTEND-MASTER-BLUEPRINT.md",
+      "category": "frontend_handoff_docs",
+      "description": "Master architectural blueprint for frontend implementation",
+      "size_bytes": 20173,
+      "line_count": 303,
+      "sha256": "2699c4c0b73393243f2dde0fc69a1f50cfa5a1e58bb495fe7fec96731fe2d280"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-01.md",
+      "category": "frontend_plans",
+      "description": "FE-01: Frontend Foundation & Project Scaffolding Plan",
+      "size_bytes": 758,
+      "line_count": 29,
+      "sha256": "acf2c509db94b20511c122027123fe28ad21d5e16bd5a1d08e2818e26f1ba2f7"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-02.md",
+      "category": "frontend_plans",
+      "description": "FE-02: Design Tokens & Layout System Plan",
+      "size_bytes": 750,
+      "line_count": 28,
+      "sha256": "95e682156446bdfe800087880f898ca11003adaf4db233f98c050b383ae95285"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-03.md",
+      "category": "frontend_plans",
+      "description": "FE-03: API Client & MSW Mock Infrastructure Plan",
+      "size_bytes": 721,
+      "line_count": 28,
+      "sha256": "839b420124a7c91a70b44abd6de7fcd93be16d318cca0501bd308a75a4105a2a"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-04.md",
+      "category": "frontend_plans",
+      "description": "FE-04: Vector Analysis & Results Visualization Plan",
+      "size_bytes": 743,
+      "line_count": 28,
+      "sha256": "5c8c27edbd9a566a34ba34cc21c1783721e58ba7c50c9ccc63974ce769226269"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-05.md",
+      "category": "frontend_plans",
+      "description": "FE-05: Jev AI Advisory Panel Integration Plan",
+      "size_bytes": 740,
+      "line_count": 28,
+      "sha256": "9deca5fe53909dc31b0d080a811b00332f409ead58d14c11e439da20255599df"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-06.md",
+      "category": "frontend_plans",
+      "description": "FE-06: History, Alerts & Evidence Exploration Plan",
+      "size_bytes": 785,
+      "line_count": 29,
+      "sha256": "60a5a67447ed993d74f38a6a1de20f57c229575299337455c5fa9227dbb645e7"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-07.md",
+      "category": "frontend_plans",
+      "description": "FE-07: System Telemetry & Status Dashboard Plan",
+      "size_bytes": 734,
+      "line_count": 28,
+      "sha256": "d110a5b7c83ac8361e18d910a1f35560d2210c08e5dfc2663f527cce04d1745b"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-08.md",
+      "category": "frontend_plans",
+      "description": "FE-08: Admin Controls & RBAC Management Plan",
+      "size_bytes": 726,
+      "line_count": 27,
+      "sha256": "55af1134b8ccfa9aaf785fb38741ed7036a6497b501dddfe783d5212140cdd0f"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-09.md",
+      "category": "frontend_plans",
+      "description": "FE-09: Production Hardening, A11y & Error Recovery Plan",
+      "size_bytes": 762,
+      "line_count": 28,
+      "sha256": "32eb56b0a7cab65595d1ae115d99ba1d646a7aefc00642a039879b5a6eb17e7a"
+    },
+    {
+      "relative_path": "docs/plans/frontend/PLAN-FE-10.md",
+      "category": "frontend_plans",
+      "description": "FE-10: End-to-End Verification & Handoff Signoff Plan",
+      "size_bytes": 749,
+      "line_count": 29,
+      "sha256": "e0e038bf7d33172552a27109d67ca1b79f9364dfc6df05b8b9d91a422a758a00"
+    },
+    {
+      "relative_path": "docs/baseline/11_FRONTEND_SPEC.md",
+      "category": "frontend_specification",
+      "description": "Baseline project specification for frontend UX and information architecture",
+      "size_bytes": 1744,
+      "line_count": 58,
+      "sha256": "9fe3a5ae52b1898c7bcf46c998aec6f809ec675be00be2110886fa43dd23c618"
+    },
+    {
+      "relative_path": "infrastructure/docker/frontend.Dockerfile",
+      "category": "frontend_container",
+      "description": "Docker container definition for Streamlit frontend runtime",
+      "size_bytes": 640,
+      "line_count": 24,
+      "sha256": "f55d9314eb9013c773fcc220e28ef2e69ff19460e24af85d277cf4613bd83117"
+    }
+  ]
+}

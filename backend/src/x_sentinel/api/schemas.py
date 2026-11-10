@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class VectorAnalysisRequest(BaseModel):
+    model_config = ConfigDict(strict=True)
+
     features: list[float] = Field(
         ...,
         description="2,381-dimensional normalized numerical feature vector matching EMBER",
@@ -18,6 +20,19 @@ class VectorAnalysisRequest(BaseModel):
         default=None,
         description="Optional client-provided correlation or idempotency request identifier",
     )
+
+    @field_validator("features")
+    @classmethod
+    def validate_features_strict(cls, v: list[Any]) -> list[float]:
+        if len(v) != 2381:
+            diff_msg = f"missing {2381 - len(v)}" if len(v) < 2381 else f"exceeds by {len(v) - 2381}"
+            raise ValueError(f"Vector dimension must be exactly 2,381; got {len(v)} ({diff_msg})")
+        for idx, val in enumerate(v):
+            if isinstance(val, bool):
+                raise TypeError(f"Feature at index {idx} cannot be boolean")
+            if not isinstance(val, (int, float)):
+                raise TypeError(f"Feature at index {idx} must be numeric, got {type(val).__name__}")
+        return [float(x) for x in v]
 
 
 class AnalysisResponse(BaseModel):

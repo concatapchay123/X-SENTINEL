@@ -8,15 +8,22 @@ from x_sentinel.detection.config import M1Config
 from x_sentinel.domain import SignalResult
 
 
-def m1_tadr(shap_values: Sequence[float], eps: float = 1e-12) -> float:
-    """Top-1 Attribution Dominance Ratio (Severi et al. / X-GUARD baseline).
+def m1_tadr(shap_values: Sequence[float], eps: float = 1e-12, top_k: int = 1) -> float:
+    """Top-k Attribution Dominance Ratio (Severi et al., USENIX Security 2021).
 
     Mathematical formulation:
-        TADR(S) = max_i(|s_i|) / sum_i(|s_i|)
+        When top_k == 1:
+            TADR_1(S) = max_i(|s_i|) / sum_i(|s_i|)
+        When top_k > 1:
+            TADR_k(S) = sum_{i=1}^k |s_{(i)}| / sum_i(|s_i|)
+        where |s_{(i)}| denotes the i-th largest absolute SHAP value.
 
     When sum_i(|s_i|) <= eps, returns 0.0 to prevent division by zero.
     Bounded in [0.0, 1.0].
     """
+    if top_k < 1:
+        raise ValueError(f"top_k must be >= 1, got {top_k}.")
+
     if not isinstance(shap_values, (list, tuple)):
         # Support numpy arrays or general sequences
         try:
@@ -40,12 +47,17 @@ def m1_tadr(shap_values: Sequence[float], eps: float = 1e-12) -> float:
     if total <= eps:
         return 0.0
 
-    score = max(abs_values) / total
+    if top_k == 1:
+        score = max(abs_values) / total
+    else:
+        sorted_abs = sorted(abs_values, reverse=True)
+        score = sum(sorted_abs[:top_k]) / total
+
     return float(min(max(score, 0.0), 1.0))
 
 
 class M1TADRDetector:
-    """Canonical M1 Detector: Top-1 Attribution Dominance Ratio."""
+    """Canonical M1 Detector: Top-k Attribution Dominance Ratio."""
 
     name: str = "m1"
 
@@ -59,12 +71,13 @@ class M1TADRDetector:
                 enabled=bool(config.get("enabled", True)),
                 formula=str(config.get("formula", "tadr")),
                 eps=float(config.get("eps", 1e-12)),
+                top_k=int(config.get("top_k", 1) if config.get("top_k") is not None else 1),
             )
         else:
             raise TypeError(f"Invalid config type: {type(config)}")
 
     def score(self, shap_values: Sequence[float]) -> float:
-        return m1_tadr(shap_values, eps=self.config.eps)
+        return m1_tadr(shap_values, eps=self.config.eps, top_k=self.config.top_k)
 
     def detect(self, shap_values: Sequence[float]) -> SignalResult:
         if not self.config.enabled:
@@ -78,10 +91,11 @@ class M1TADRDetector:
         top_val = max(abs_vals) if abs_vals else 0.0
         top_idx = abs_vals.index(top_val) if abs_vals else -1
 
-        tadr_score = m1_tadr(shap_values, eps=self.config.eps)
+        tadr_score = m1_tadr(shap_values, eps=self.config.eps, top_k=self.config.top_k)
 
         diagnostics: dict[str, Any] = {
             "formula": "tadr",
+            "top_k": self.config.top_k,
             "top_feature_index": top_idx,
             "top_feature_abs_shap": float(top_val),
             "total_abs_shap": float(total),

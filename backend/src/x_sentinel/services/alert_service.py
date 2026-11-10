@@ -5,8 +5,15 @@ import uuid
 from sqlalchemy.orm import Session
 
 from x_sentinel.api.schemas import AlertSummary
-from x_sentinel.database.models import Alert, AuditEvent
+from x_sentinel.config import settings
+from x_sentinel.database.models import Alert, AnalysisJob, AuditEvent
 from x_sentinel.database.repositories.alert import AlertRepository
+from x_sentinel.security.auth import (
+    ANONYMOUS_USER,
+    AuthUser,
+    assert_alert_ownership,
+    is_admin,
+)
 
 
 class AlertService:
@@ -38,6 +45,7 @@ class AlertService:
         severity: str | None = None,
         status: str | None = None,
         analysis_job_id: str | None = None,
+        user: AuthUser | None = None,
     ) -> tuple[list[AlertSummary], int]:
         repo = self._repo(session)
         job_uuid: uuid.UUID | None = None
@@ -48,16 +56,32 @@ class AlertService:
                 # Return empty list if invalid UUID
                 return [], 0
 
+            # If user is non-admin and not anonymous, verify job ownership
+            if user is not None and not is_admin(user) and user.user_id != ANONYMOUS_USER.user_id:
+                job = session.get(AnalysisJob, job_uuid)
+                if job is not None and job.user_id != user.user_id:
+                    return [], 0
+
+        owner_user_id: uuid.UUID | None = None
+        if user is not None and not is_admin(user) and user.user_id != ANONYMOUS_USER.user_id:
+            owner_user_id = user.user_id
+
         alerts, total = repo.list_alerts(
             limit=limit,
             offset=offset,
             severity=severity,
             status=status,
             analysis_job_id=job_uuid,
+            owner_user_id=owner_user_id,
         )
         return [self._to_summary(a) for a in alerts], total
 
-    def get_alert(self, session: Session, alert_id: str | uuid.UUID) -> AlertSummary | None:
+    def get_alert(
+        self,
+        session: Session,
+        alert_id: str | uuid.UUID,
+        user: AuthUser | None = None,
+    ) -> AlertSummary | None:
         try:
             parsed_id = alert_id if isinstance(alert_id, uuid.UUID) else uuid.UUID(str(alert_id))
         except (ValueError, TypeError):
@@ -67,6 +91,10 @@ class AlertService:
         alert = repo.get_by_id(parsed_id)
         if alert is None:
             return None
+
+        if user is not None:
+            assert_alert_ownership(alert, user, session)
+
         return self._to_summary(alert)
 
     def update_alert_status(
@@ -75,6 +103,7 @@ class AlertService:
         alert_id: str | uuid.UUID,
         new_status: str,
         actor_id: uuid.UUID | None = None,
+        user: AuthUser | None = None,
     ) -> AlertSummary:
         try:
             parsed_id = alert_id if isinstance(alert_id, uuid.UUID) else uuid.UUID(str(alert_id))
@@ -85,6 +114,9 @@ class AlertService:
         existing = repo.get_by_id(parsed_id)
         if existing is None:
             raise LookupError(f"Alert '{parsed_id}' not found.")
+
+        if user is not None:
+            assert_alert_ownership(existing, user, session)
 
         old_status = existing.status
         updated = repo.update_status(parsed_id, new_status)

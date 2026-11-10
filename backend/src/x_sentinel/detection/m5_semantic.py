@@ -196,7 +196,11 @@ class M5SemanticPlausibilityDetector:
         if not self.config.enabled:
             return SignalResult(name=self.name, score=0.0, diagnostics={"status": "DISABLED"})
 
-        score, diagnostics = evaluate_semantic_rules(vector, self.rules_data)
+        plausibility_score, diagnostics = evaluate_semantic_rules(vector, self.rules_data)
         diagnostics["rules_sha256"] = self.loaded_sha256
 
-        return SignalResult(name=self.name, score=score, diagnostics=diagnostics)
+        # Polarity alignment (SCI-05): Primary returned score is anomaly/suspicion score
+        # 1.0 means broken PE invariants / high suspicion; 0.0 means completely clean PE structure.
+        anomaly_score = diagnostics.get("anomaly_score", float(1.0 - plausibility_score))
+
+        return SignalResult(name=self.name, score=anomaly_score, diagnostics=diagnostics)

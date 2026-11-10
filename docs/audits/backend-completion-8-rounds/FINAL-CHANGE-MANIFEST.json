@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-10-16T14:04:49.547332+00:00",
+  "version": "3.0.0",
+  "modified_files": [
+    "backend/src/x_sentinel/detection/config.py",
+    "backend/src/x_sentinel/detection/m1_tadr.py",
+    "backend/src/x_sentinel/detection/m5_semantic.py",
+    "backend/src/x_sentinel/services/analysis_service.py",
+    "backend/tests/test_be06_detector_pipeline.py",
+    "backend/tests/test_be06_m1_tadr.py",
+    "backend/tests/test_be06_m5_semantic.py",
+    "tests/integration/test_be16_database_resilience.py",
+    "scripts/verify_frontend_lock.py"
+  ],
+  "created_files": [
+    "docs/governance/FRONTEND_LOCK_MANIFEST.json",
+    "tests/security/test_verify_frontend_lock.py",
+    "docs/backend-api-handoff/openapi.json"
+  ]
+}

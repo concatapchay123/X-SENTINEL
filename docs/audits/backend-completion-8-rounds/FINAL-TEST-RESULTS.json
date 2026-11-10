@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-10-16T14:04:49.547332+00:00",
+  "total_collected": 1013,
+  "passed": 1013,
+  "failed": 0,
+  "skipped": 0,
+  "backend_tests_passed": 865,
+  "root_tests_passed": 148,
+  "exit_code": 0,
+  "status": "PASS"
+}

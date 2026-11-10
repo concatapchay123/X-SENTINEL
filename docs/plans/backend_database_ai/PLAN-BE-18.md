@@ -45,3 +45,24 @@ Ship deterministic containers, migrations, staging checks and rollback tuple.
 ## Done definition
 
 No silent TBDs, no undocumented schema/API changes, 944/944 automated tests pass (918 upstream regression + 26 deployment), and outputs are traceable to versioned config/code.
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_VERIFIED`
+- **Exact Source File Paths:**
+  - `docker-compose.yml`
+  - `infrastructure/docker/backend.Dockerfile`
+  - `infrastructure/docker/frontend.Dockerfile`
+  - `.dockerignore`
+  - `scripts/migration_gate.py`
+  - `scripts/release_gate.py`
+  - `scripts/verify_release_tuple.py`
+  - `docs/release/RELEASE_CHECKLIST.md`
+- **Associated Test Suites:**
+  - `tests/deployment/` (26 passed)
+- **Empirical Artifacts:**
+  - Cryptographically bound release tuple (`sha256:418182...`)
+  - `docs/release/RELEASE_CHECKLIST.md`
+- **Operational Boundaries & Verified Limitations:**
+  - Multi-stage non-root container (UID 10001). 10/10 release gates green. Atomic release tuple bound (`sha256:418182...`). Production image build requires Docker engine.

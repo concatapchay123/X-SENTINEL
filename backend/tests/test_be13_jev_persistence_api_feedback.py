@@ -371,6 +371,7 @@ class TestJevAIRepositories:
 # ===========================================================================
 
 
+@pytest.mark.db
 class TestLiveSQLServerPersistence:
     def test_live_mssql_jev_run_and_feedback_constraints_and_cascades(self) -> None:
         """Directly verify JevAIRun and JevAIFeedback against live Microsoft SQL Server."""

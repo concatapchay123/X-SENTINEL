@@ -74,3 +74,25 @@ No silent TBDs, no undocumented schema/API changes, tests pass, and outputs are 
 
 ## Recommended next eligible plan
 `BE-10` (Jev AI LM Studio Runtime Client).
+
+
+## Current Implementation Status
+
+- **Verified Implementation Status:** `COMPLETED_VERIFIED`
+- **Exact Source File Paths:**
+  - `backend/src/x_sentinel/api/routes.py`
+  - `backend/src/x_sentinel/api/schemas.py`
+  - `backend/src/x_sentinel/services/analysis_service.py`
+  - `backend/src/x_sentinel/services/history_service.py`
+  - `backend/src/x_sentinel/services/alert_service.py`
+  - `backend/src/x_sentinel/services/evidence_service.py`
+  - `docs/api/openapi.yaml`
+- **Associated Test Suites:**
+  - `backend/tests/test_be09_authorization.py`
+  - `backend/tests/test_be09_core_api.py`
+  - `backend/tests/test_be09_integration.py`
+  - `backend/tests/test_be09_openapi_contract.py` (34 passed across BE-09 suite)
+- **Empirical Artifacts:**
+  - `docs/api/openapi.yaml` (Authoritative OpenAPI 3.1.0 specification)
+- **Operational Boundaries & Verified Limitations:**
+  - Pure headless REST architecture. 11 canonical REST endpoints registered in OpenAPI. Alert transition actions backed by PATCH schema (`status` update); note persistence and assignment remain UI-level gaps (GAP-06 / GAP-07).

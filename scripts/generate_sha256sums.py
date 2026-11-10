@@ -26,6 +26,7 @@ EXCLUDE_DIRS = {
     "venv",
     ".idea",
     ".vscode",
+    ".agents",
 }
 
 EXCLUDE_FILES = {
@@ -38,7 +39,7 @@ def should_include(rel_path: str) -> bool:
     parts = rel_path.replace("\\", "/").split("/")
     # Exclude directories
     for part in parts[:-1]:
-        if part in EXCLUDE_DIRS:
+        if part in EXCLUDE_DIRS or part.endswith(".backup"):
             return False
 
     filename = parts[-1]
@@ -49,6 +50,14 @@ def should_include(rel_path: str) -> bool:
 
     # Exclude dataset contents except .gitkeep
     if len(parts) > 1 and parts[0] == "datasets" and filename != ".gitkeep":
+        return False
+
+    # Exclude mutable runtime output directories under artifacts/
+    if len(parts) > 1 and parts[0] == "artifacts" and parts[1] in {"audit", "release", "performance"}:
+        return False
+
+    # Exclude dynamic release artifacts generated during release gate execution
+    if len(parts) > 1 and parts[0] == "docs" and parts[1] == "release":
         return False
 
     return True
